@@ -40,6 +40,8 @@ def twitchophile():
     streams_df['time'] = streams_df['time'].apply(lambda x:  datetime.datetime(*x.timetuple()[:5]))
     streams_df['game_viewers_by_time'] = streams_df.groupby(['time','game'])['viewers'].transform(sum)
 
+    print('number of unique games recorded in streams_df:',len(streams_df['game'].drop_duplicates()),'\n')
+
     game_viewers_by_minute = streams_df[['time','game','game_viewers_by_time']].drop_duplicates()
     print('\ngame viewers by minute:')
     print(game_viewers_by_minute.head())
