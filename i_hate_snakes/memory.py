@@ -42,46 +42,7 @@ def ReadProcessMemory(handle, addr, buffer_size):
 
 class Signatures:
 
-	def search(self, handle):
-		BUF_SCAN_SIZE = 4096
 
-		current_addr = 0
-		current_size = 0
-
-		end = 10*1024*1024 # 10 mb
-
-		while(current_addr < end):
-			if not VirtualQueryEx(handle, current_addr):
-				raise RuntimeError('VirtualQueryEx returned error code %d'.format(c.GetLastError()))
-			end = mbi.BaseAddress + mbi.RegionSize
-			remainder = end - curr_addr
-			
-			retain = []
-
-			if mbi.State == win32.MEM_COMMIT:
-					
-				if current_size < remainder:
-					current_size = remainder
-				buf = ReadProcessMemory(handle, curr_addr, remainder)
-				if not buf:
-					curr_addr += remainder
-					continue
-
-				while len(self._signatures) > 0:
-					n,m,s = self._signatures.pop()
-					ptr = self.find_pattern(buf, remainder, m, s)
-
-					if ptr:
-						self._pointers[n] = (current_addr + (ptr - buf))
-					else:
-						retain.append((n,m,p))
-				self._signatures = retain
-				if not self._signatures:
-					return
-
-			curr_addr += remainder
-
-		raise RuntimeError('Could not find all signatures in memory.')
 
 	def __init__(self,sp):
 
@@ -131,18 +92,59 @@ class Signatures:
 
 		self.search(sp.handle)
 
-		def find_pattern(buf, data_size, mask, find):
-			pos = 0
-			size = len(mask)
-			for i in range(0,data_size):
-				if mask[pos] == '.' or buf[i] == find[pos]:
-					pos += 1
-					if pos == size:
-						return byref(buf)+(i-pos+1)*c.c_size_t
-				else:
-					i -= pos
-					pos = 0
-			return None
+	def search(self, handle):
+		BUF_SCAN_SIZE = 4096
+
+		current_addr = 0
+		current_size = 0
+
+		end = 10*1024*1024 # 10 mb
+
+		while(current_addr < end):
+			if not VirtualQueryEx(handle, current_addr):
+				raise RuntimeError('VirtualQueryEx returned error code %d'.format(c.GetLastError()))
+			end = mbi.BaseAddress + mbi.RegionSize
+			remainder = end - curr_addr
+			
+			retain = []
+
+			if mbi.State == win32.MEM_COMMIT:
+					
+				if current_size < remainder:
+					current_size = remainder
+				buf = ReadProcessMemory(handle, curr_addr, remainder)
+				if not buf:
+					curr_addr += remainder
+					continue
+
+				while len(self._signatures) > 0:
+					n,m,s = self._signatures.pop()
+					ptr = self.find_pattern(buf, remainder, m, s)
+
+					if ptr:
+						self._pointers[n] = (current_addr + (ptr - buf))
+					else:
+						retain.append((n,m,p))
+				self._signatures = retain
+				if not self._signatures:
+					return
+
+			curr_addr += remainder
+
+		raise RuntimeError('Could not find all signatures in memory.')
+
+	def find_pattern(buf, data_size, mask, find):
+		pos = 0
+		size = len(mask)
+		for i in range(0,data_size):
+			if mask[pos] == '.' or buf[i] == find[pos]:
+				pos += 1
+				if pos == size:
+					return byref(buf)+(i-pos+1)*c.c_size_t
+			else:
+				i -= pos
+				pos = 0
+		return None
 
 
 	def __iter__(self):
