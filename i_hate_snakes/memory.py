@@ -2,7 +2,7 @@
 from win32com.client import GetObject
 import ctypes as c
 from ctypes import wintypes
-import win32api, win32con, struct, binascii, win32
+import win32api, win32con, struct, binascii, win32, sys
 
 class MEMORY_BASIC_INFORMATION(c.Structure):
 
@@ -14,29 +14,45 @@ class MEMORY_BASIC_INFORMATION(c.Structure):
 			("Protect", c.c_long),
 			("Type", c.c_long)    ]
 
+class MEMORY_BASIC_INFORMATION64(c.Structure):
+
+	_fields_ = [ ("BaseAddress",  c.c_ulonglong),
+			("AllocationBase", c.c_ulonglong),
+			("AllocationProtect", c.c_long),
+			("__alignment1", c.c_long),
+			("RegionSize", c.c_longlong),
+			("State", c.c_long),
+			("Protect", c.c_long),
+			("Type", c.c_long),
+			("__alignment2", c.c_long)]
+
+
+IS_64BIT = sys.maxsize > 2**32
+if IS_64BIT:
+	MBI = MEMORY_BASIC_INFORMATION64
+else:
+	MBI = MEMORY_BASIC_INFORMATION
+
 _ReadProcessMemory = c.WinDLL('kernel32',use_last_error=True).ReadProcessMemory
 _ReadProcessMemory.argtypes = [wintypes.HANDLE,wintypes.LPCVOID,wintypes.LPVOID,c.c_size_t,c.POINTER(c.c_size_t)]
 _ReadProcessMemory.restype = wintypes.BOOL
 
-_VirtualQueryEx = c.WinDLL('kernel32',use_last_error=True).VirtualQueryEx
-_VirtualQueryEx.argtypes = [wintypes.HANDLE, wintypes.LPCVOID, c.POINTER(MEMORY_BASIC_INFORMATION), c.c_size_t] 
-_VirtualQueryEx.restype = c.c_size_t
-
 def VirtualQueryEx(handle, addr):
-	mbi = MEMORY_BASIC_INFORMATION()
-	mbi_size = c.c_int(c.sizeof(mbi))
-	addr = c.c_long(addr)
+	mbi = MBI()
+	mbi_pointer = c.byref(mbi)
+	mbi_size = c.sizeof(mbi)
 
-	return mbi if _VirtualQueryEx(handle, addr, c.byref(mbi), mbi_size) else None
+	return mbi if c.windll.kernel32.VirtualQueryEx(handle, addr, mbi_pointer, mbi_size) else None
 
 def ReadProcessMemory(handle, addr, buffer_size):
 	
 	# gold is stored in a short int (2 bytes)
 	data = c.create_string_buffer(buffer_size)
 
-	# for 64-bit python this should be count = c.c_ulongong(0)
-	# for 32-bit python this should be count = c.c_ulong(0)
-	count = c.c_ulonglong(0)
+	if IS_64BIT:
+		count = c.c_ulonglong(0)
+	else:
+		count = c.c_ulong(0)
 
 	return data if _ReadProcessMemory(handle, addr, data, buffer_size, c.byref(count)) else None
 
@@ -90,9 +106,9 @@ class Signatures:
 		self._signatures = list(zip(names,masks,sigs))
 		self._pointers = {}
 
-		self.search(sp.handle)
+		self.search(sp)
 
-	def search(self, handle):
+	def search(self, sp):
 		BUF_SCAN_SIZE = 4096
 
 		current_addr = 0
@@ -101,18 +117,20 @@ class Signatures:
 		end = 10*1024*1024 # 10 mb
 
 		while(current_addr < end):
-			if not VirtualQueryEx(handle, current_addr):
-				raise RuntimeError('VirtualQueryEx returned error code %d'.format(c.GetLastError()))
+			mbi = VirtualQueryEx(sp.handle, current_addr)
+			if not mbi:
+				raise RuntimeError('VirtualQueryEx returned error code {}'.format(c.GetLastError()))
 			end = mbi.BaseAddress + mbi.RegionSize
-			remainder = end - curr_addr
+			remainder = end - current_addr
 			
 			retain = []
 
-			if mbi.State == win32.MEM_COMMIT:
+			# MEM_COMMIT == 0x00001000
+			if mbi.State == 0x00001000:
 					
 				if current_size < remainder:
 					current_size = remainder
-				buf = ReadProcessMemory(handle, curr_addr, remainder)
+				buf = ReadProcessMemory(sp.handle, curr_addr, remainder)
 				if not buf:
 					curr_addr += remainder
 					continue
@@ -129,7 +147,7 @@ class Signatures:
 				if not self._signatures:
 					return
 
-			curr_addr += remainder
+			current_addr += remainder
 
 		raise RuntimeError('Could not find all signatures in memory.')
 
