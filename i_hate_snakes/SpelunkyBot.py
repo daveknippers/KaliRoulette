@@ -2,11 +2,12 @@
 
 import irc.bot
 import irc.strings
-from bets import bettingEngine
-from ods import oddsEngine
+import people
+import bets
+import odds
 from irc.client import ip_numstr_to_quad, ip_quad_to_numstr
 class BetBot(irc.bot.SingleServerIRCBot):
-    def __init__(self, channel, nickname, server, theOdds):
+    def __init__(self, channel, nickname, server):
         irc.bot.SingleServerIRCBot.__init__(self, [server], nickname, nickname)
         self.channel = channel
     def on_nicknameinuse(self, c, e):
@@ -16,7 +17,9 @@ class BetBot(irc.bot.SingleServerIRCBot):
         c.send_raw("CAP REQ :twitch.tv/commands")
         c.join(self.channel)
         c.set_rate_limit(100/30)
-        theBetter = bettingEngine(theOdds)
+        self.theOdds = odds.oddsEngine()
+        self.theBetter = bets.bettingEngine(self.theOdds, self.connection)
+        self.user = people.users()
 
     def on_pubmsg(self, c, e):
       a = e.arguments[0].split("!", 1) #splitsthe
@@ -29,29 +32,27 @@ class BetBot(irc.bot.SingleServerIRCBot):
         self.on_pubmsg(c,e)
     def do_command(self, e, cmd):
         nick = 'spelunkybot'
-        print(cmd)
         cmd = cmd.split(" ")
-        print(cmd)
+        bet = 0
         if (len(cmd)> 1):
-            if (len(cmd)> 2):
+            if (len(cmd)== 3):
                 condition1 = str(cmd[2])
                 condition2 = None
-                bet = cmd[1]
+                bet = int(cmd[1])
                 cmd = cmd[0]
-            if (len(cmd)> 3):
+            elif (len(cmd)== 4):
                 condition1 = str(cmd[2])
                 condition2 = str(cmd[3])
-                bet = cmd[1]
+                bet = int(cmd[1])
                 cmd = cmd[0]
         c = self.connection
         twitchUser = str(e.source.split("!")[0])
         channelName = self.channel
-        if cmd[0] == "bet":
-            userBet = theBetter.placeBet(twitchUser, bet, condtion1, condtion2, c, channelName)
-        elif cmd == "death":
-            c.privmsg(str(channelName),twitchUser +" bet " + bet+ " on death by "+ condition)
-        elif cmd == "level":
-            c.privmsg(str(channelName),twitchUser +" bet " + bet+ " on level "+ condition)
+        if cmd == "bet" and bet!= 0:
+            userBet = self.theBetter.placeBet(twitchUser, bet, condition1, condition2, channelName)
+        elif cmd[0] == "balance":
+            balance = self.user.getUserBalance(twitchUser)
+            c.privmsg(str(channelName),"/w "+ twitchUser +" Your balance is " + str(balance))
         elif cmd[0] == "stfu":
             c.privmsg(str(channelName),"no Kappa")
         elif cmd[0] == "hi":
