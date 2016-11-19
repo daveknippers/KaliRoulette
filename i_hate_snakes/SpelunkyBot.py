@@ -2,10 +2,11 @@
 
 import irc.bot
 import irc.strings
-from bets.py import bettingEngine
+from bets import bettingEngine
+from ods import oddsEngine
 from irc.client import ip_numstr_to_quad, ip_quad_to_numstr
 class BetBot(irc.bot.SingleServerIRCBot):
-    def __init__(self, channel, nickname, server):
+    def __init__(self, channel, nickname, server, theOdds):
         irc.bot.SingleServerIRCBot.__init__(self, [server], nickname, nickname)
         self.channel = channel
     def on_nicknameinuse(self, c, e):
@@ -15,6 +16,8 @@ class BetBot(irc.bot.SingleServerIRCBot):
         c.send_raw("CAP REQ :twitch.tv/commands")
         c.join(self.channel)
         c.set_rate_limit(100/30)
+        theBetter = bettingEngine(theOdds)
+
     def on_pubmsg(self, c, e):
       a = e.arguments[0].split("!", 1) #splitsthe
       print(e)
@@ -44,7 +47,7 @@ class BetBot(irc.bot.SingleServerIRCBot):
         twitchUser = str(e.source.split("!")[0])
         channelName = self.channel
         if cmd[0] == "bet":
-            userBet = bettingEngine.placeBet(twitchUser, bet, condtion1, condtion2, c)
+            userBet = theBetter.placeBet(twitchUser, bet, condtion1, condtion2, c, channelName)
         elif cmd == "death":
             c.privmsg(str(channelName),twitchUser +" bet " + bet+ " on death by "+ condition)
         elif cmd == "level":
