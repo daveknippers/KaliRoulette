@@ -26,14 +26,14 @@ class bettingEngine():
 
         # 2
         if userMoney < bet:
-            c.privmsg(str(channelName),"/w "+ twitchUser+ " you bet "+ str(bet) + " but you only have " + str(userMoney) + " so thats the amount you bet you cheater")
+            c.privmsg(str(channelName),"/w "+ twitchUser+ " you bet "+ str(bet) + " but you only have " + str(userMoney) + " Golden Daves so thats the amount you bet you cheater")
             bet = userMoney
         remaining = self.users.bettingUserGold(twitchUser,-bet)
         # 3 and 4
         bettingOdds = self.odds.getOdds(condition1, condition2)
         print(bettingOdds)
         potWinning = int(bettingOdds) * int(bet)
-        c.privmsg(str(channelName),"/w "+ twitchUser+ " odds are "+ str(bettingOdds)+ " winnings =" + str(potWinning) + " balance = "+ str(remaining))
+        c.privmsg(str(channelName),"/w "+ twitchUser+ " odds are "+ str(bettingOdds)+ " winnings =" + str(potWinning) + " Golden Daves balance = "+ str(remaining) + " Golden Daves")
         userBet = [twitchUser, bet, bettingOdds, potWinning, condition1, condition2]
         print (userBet)
         self.BetsArray.append(userBet)

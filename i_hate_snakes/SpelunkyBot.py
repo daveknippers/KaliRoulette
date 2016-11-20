@@ -52,7 +52,7 @@ class BetBot(irc.bot.SingleServerIRCBot):
             userBet = self.theBetter.placeBet(twitchUser, bet, condition1, condition2, channelName)
         elif cmd[0] == "balance":
             balance = self.user.getUserBalance(twitchUser)
-            c.privmsg(str(channelName),"/w "+ twitchUser +" Your balance is " + str(balance))
+            c.privmsg(str(channelName),"/w "+ twitchUser +" Your balance is " + str(balance)+ " Golden Daves")
         elif cmd[0] == "stfu":
             c.privmsg(str(channelName),"no Kappa")
         elif cmd[0] == "hi":
