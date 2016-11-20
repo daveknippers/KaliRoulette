@@ -1,4 +1,4 @@
-
+import time
 import people
 
 class bettingEngine():
@@ -31,13 +31,32 @@ class bettingEngine():
         remaining = self.users.bettingUserGold(twitchUser,-bet)
         # 3 and 4
         bettingOdds = self.odds.getOdds(condition1, condition2)
+        if bettingOdds == -1:
+            remaining = self.users.bettingUserGold(twitchUser,bet)
+            c.privmsg(str(channelName),"/w "+ twitchUser+ " you bet on something that doesnt exist.  Ive refunded your money but make sure you spell it right next time or maybe i wont be so nice")
+            return
         print(bettingOdds)
         potWinning = int(bettingOdds) * int(bet)
+        betTime = time.time()
         c.privmsg(str(channelName),"/w "+ twitchUser+ " odds are "+ str(bettingOdds)+ " winnings =" + str(potWinning) + " Golden Daves balance = "+ str(remaining) + " Golden Daves")
-        userBet = [twitchUser, bet, bettingOdds, potWinning, condition1, condition2]
+        userBet = [twitchUser, bet, bettingOdds, potWinning, condition1, condition2, betTime]
         print (userBet)
         self.BetsArray.append(userBet)
         return
+    def stopBet(self, userName):
+        succsess = False
+        currentTime = time.time()
+        i=0
+        for item in self.BetsArray:
+            if item[0] == userName:
+                difference = currentTime - item[6]
+                if difference <= 10:
+                    self.users.bettingUserGold(userName, item[1])
+                    self.BetsArray.pop(i)
+                    i = i-1
+                    succsess = True
+            i+=1
+        return succsess
 
     def tallyWinnings(self, condtion1, condition2, gold=None, ropes=None, bombs=None):
         for i in self.BetsArray:

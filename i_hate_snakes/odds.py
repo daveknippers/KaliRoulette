@@ -21,7 +21,7 @@ class oddsEngine():
                 odds2 = self.oddsData[condition2]
                 pass
             except Exception as e:
-                return 1
+                return -1
                 raise
             finalOdds = int(odds1) * int(odds2)
         else:
@@ -29,7 +29,7 @@ class oddsEngine():
                 finalOdds = self.oddsData[condition1]
                 pass
             except Exception as e:
-                return 1
+                return -1
                 raise
         return finalOdds
     def changeOdds(self, condition, newOdds):

@@ -55,12 +55,16 @@ class BetBot(irc.bot.SingleServerIRCBot):
             c.privmsg(str(channelName),"/w "+ twitchUser +" Your balance is " + str(balance)+ " Golden Daves")
         elif cmd[0] == "stfu":
             c.privmsg(str(channelName),"no Kappa")
+        elif cmd[0] == "nobet":
+            returned = self.theBetter.stopBet(twitchUser)
+            if returned == True:
+                c.privmsg(str(channelName),"/w "+ twitchUser +" Your Bet(s) were canceled")
+            else:
+                c.privmsg(str(channelName),"/w "+ twitchUser +" Your bet was not canncled since the player died or your 10 second window passed")
         elif cmd[0] == "hi":
             c.privmsg(str(channelName),"/w "+ twitchUser+ " hi")
-        elif cmd[0] == "victory":
-            c.privmsg(str(channelName),"there is no winning in darksouls Kappa")
         elif cmd[0] == "ankh":
-            c.privmsg(str(channelName),"Good think I have the ankh")
+            c.privmsg(str(channelName),"Good thing I have the ankh")
         else:
             c.privmsg(str(channelName),"/w "+ twitchUser+ " Not understood: " + str(cmd))
 def main():
