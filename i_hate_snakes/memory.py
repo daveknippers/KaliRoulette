@@ -2,7 +2,8 @@
 from win32com.client import GetObject
 import ctypes as c
 from ctypes import wintypes
-import win32api, win32con, struct, binascii, win32, sys
+from copy import copy
+import win32api, win32con, struct, binascii, win32, sys, math
 
 class MEMORY_BASIC_INFORMATION(c.Structure):
 
@@ -37,6 +38,24 @@ _ReadProcessMemory = c.WinDLL('kernel32',use_last_error=True).ReadProcessMemory
 _ReadProcessMemory.argtypes = [wintypes.HANDLE,wintypes.LPCVOID,wintypes.LPVOID,c.c_size_t,c.POINTER(c.c_size_t)]
 _ReadProcessMemory.restype = wintypes.BOOL
 
+
+def debug_byte_array(buf):
+	str_out = []
+	for i in range(0,math.floor(len(buf)/8)):
+		str_out.append(':'.join('{:02x}'.format(x) for x in buf[i*8:min((i+1)*8,len(buf))]))
+		if len(str_out) >= 40:
+			result = '\n'.join(str_out)
+			if '22' in result:
+				print(result)
+				return
+			str_out = []
+	if len(str_out) > 0:
+		result = '\n'.join(str_out)
+		if '22' in result:
+			print(result)
+
+
+
 def VirtualQueryEx(handle, addr):
 	mbi = MBI()
 	mbi_pointer = c.byref(mbi)
@@ -45,8 +64,6 @@ def VirtualQueryEx(handle, addr):
 	return mbi if c.windll.kernel32.VirtualQueryEx(handle, addr, mbi_pointer, mbi_size) else None
 
 def ReadProcessMemory(handle, addr, buffer_size):
-	
-	# gold is stored in a short int (2 bytes)
 	data = c.create_string_buffer(buffer_size)
 
 	if IS_64BIT:
@@ -56,17 +73,78 @@ def ReadProcessMemory(handle, addr, buffer_size):
 
 	return data if _ReadProcessMemory(handle, addr, data, buffer_size, c.byref(count)) else None
 
+class Buffer:
+
+	def __init__(self, buf):
+
+		self.buf = buf.raw
+		self.cursor = 0
+
+	def __contains__(self, sig):
+		m = sig.mask
+		s = sig.sig
+	
+		if len(m) > len(self.buf):
+			return False
+		for i in range(len(self.buf) - len(m)):
+			for j in range(len(m)):
+				if m[j] == 'x' and self.buf[i+j] == s[j]:
+					if j == len(m) - 1:
+						sig.set_offset(i)
+						return True
+				elif m[j] != '.':
+					break
+				else:
+					if j == len(m) - 1:
+						sig.set_offset(i)
+						return True
+		m = sig.reverse_mask
+		s = sig.reverse_sig
+
+		for i in range(len(self.buf) - len(m)):
+			for j in range(len(m)):
+				if m[j] == 'x' and s[j] == self.buf[i+j]:
+					if j == len(m) - 1:
+						sig.set_offset(i)
+						return True
+				elif m[j] != '.':
+					break
+				else:
+					if j == len(m) - 1:
+						sig.set_offset(i)
+						return True
+
+		return False
+
+						
+class Signature:
+
+	def __init__(self,name,mask,sig):
+
+		self.name = name
+		self.mask = mask
+		self.reverse_mask = copy(mask)
+		self.reverse_mask = ''.join(reversed(self.reverse_mask))
+		self.sig = sig
+		self.reverse_sig = copy(sig)
+		self.reverse_sig.reverse()
+
+		self.base_addr = None
+
+	def set_offset(self, offset):
+		self.offset = offset
+
 class Signatures:
-
-
 
 	def __init__(self,sp):
 
-		names = ['game_state',
+		names = ['game_state']
+		''''
 			 'timers',
 			 'gold_count',
 			 'player_data',
 			 'pent_container']
+		'''
 
 		'''
 		'ctrl_size',
@@ -77,35 +155,40 @@ class Signatures:
 		'entity_data']
 		'''
 
-		masks = [	[ 'xxxxxxxx.xx.xx.xxxxxx.x',
-				  'xxx.....xxxxx.x.x.....x',
-				  'xx....xx.xx....xx....xx....xx....',
-				  'x.x.x......xxxxx......x......x',
-				  'x.....x.x.x......x.x....x']]
+		masks = ['xxxxxxxx.xx.xx.xxxxxx.x']
 
+
+		'''
+			 'xxx.....xxxxx.x.x.....x',
+			 'xx....xx.xx....xx....xx....xx....',
+			 'x.x.x......xxxxx......x......x',
+			 'x.....x.x.x......x.x....x']
+		'''
+		
 		sigs = [[ 0xBB, 0x0F, 0x00, 0x00, 0x00, 0x3B, 0xC3, 0x75, 
-				0xFF, 0x8B, 0x7E, 0xFF, 0xC7, 0x46, 0xFF, 0x1B,
-				0x00, 0x00, 0x00, 0x89, 0x5E, 0xFF, 0xE8],
-			      [ 0xD8, 0xC2, 0xDD, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-				0xD8, 0xD9, 0xDF, 0xE0, 0x84, 0xFF, 0x75, 0xFF, 
-				0xDD, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x01],
-			      [ 0x8B, 0x97, 0xFF, 0xFF, 0xFF, 0xFF, 0x01, 0x50, 
-				0xFF, 0x8B, 0x87, 0xFF, 0xFF, 0xFF, 0xFF, 0x8B,
-				0x0D, 0xFF, 0xFF, 0xFF, 0xFF, 0x01, 0x81, 0xFF, 
-				0xFF, 0xFF, 0xFF, 0x8B, 0x83, 0x00, 0x00, 0x00,
-				0x00 ],
-			      [ 0x33, 0xCC, 0x8B, 0xCC, 0x69, 0xCC, 0xAA, 0xAA,
-			      	0xAA, 0xAA, 0xCC, 0x04, 0x00, 0x00, 0x00, 0x89, 
-				0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0x89, 0xCC, 
-				0xCC, 0xAA, 0xAA, 0xAA, 0xAA, 0x89],
-			      [ 0x8B, 0xCC, 0xAA, 0xAA, 0xAA, 0xAA, 0x85, 0xCC,
-				0x74, 0xCC, 0x80, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC,
-				0xCC, 0x74, 0xCC, 0xC6, 0xCC, 0xCC, 0xCC, 0xCC,
-				0x80 ]]
+			0xFF, 0x8B, 0x7E, 0xFF, 0xC7, 0x46, 0xFF, 0x1B,
+			0x00, 0x00, 0x00, 0x89, 0x5E, 0xFF, 0xE8]]
 
-		self._signatures = list(zip(names,masks,sigs))
-		self._pointers = {}
+		'''
+		      [ 0xD8, 0xC2, 0xDD, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+			0xD8, 0xD9, 0xDF, 0xE0, 0x84, 0xFF, 0x75, 0xFF, 
+			0xDD, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x01],
+		      [ 0x8B, 0x97, 0xFF, 0xFF, 0xFF, 0xFF, 0x01, 0x50, 
+			0xFF, 0x8B, 0x87, 0xFF, 0xFF, 0xFF, 0xFF, 0x8B,
+			0x0D, 0xFF, 0xFF, 0xFF, 0xFF, 0x01, 0x81, 0xFF, 
+			0xFF, 0xFF, 0xFF, 0x8B, 0x83, 0x00, 0x00, 0x00,
+			0x00 ],
+		      [ 0x33, 0xCC, 0x8B, 0xCC, 0x69, 0xCC, 0xAA, 0xAA,
+			0xAA, 0xAA, 0xCC, 0x04, 0x00, 0x00, 0x00, 0x89, 
+			0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0x89, 0xCC, 
+			0xCC, 0xAA, 0xAA, 0xAA, 0xAA, 0x89],
+		      [ 0x8B, 0xCC, 0xAA, 0xAA, 0xAA, 0xAA, 0x85, 0xCC,
+			0x74, 0xCC, 0x80, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC,
+			0xCC, 0x74, 0xCC, 0xC6, 0xCC, 0xCC, 0xCC, 0xCC,
+			0x80 ]]
+		'''
 
+		self.signatures = list(map(lambda x: Signature(*x),zip(names,masks,sigs)))
 		self.search(sp)
 
 	def search(self, sp):
@@ -116,61 +199,43 @@ class Signatures:
 
 		end = 10*1024*1024 # 10 mb
 
-		while(current_addr < end):
+		while(current_addr < 0x7FFFFFFF):
 			mbi = VirtualQueryEx(sp.handle, current_addr)
 			if not mbi:
+				print('handle:',sp.handle)
+				print('region:', current_addr)
 				raise RuntimeError('VirtualQueryEx returned error code {}'.format(c.GetLastError()))
 			end = mbi.BaseAddress + mbi.RegionSize
 			remainder = end - current_addr
-			
-			retain = []
+			if remainder > BUF_SCAN_SIZE:
+				remainder = BUF_SCAN_SIZE
 
 			# MEM_COMMIT == 0x00001000
 			if mbi.State == 0x00001000:
-					
 				if current_size < remainder:
 					current_size = remainder
-				buf = ReadProcessMemory(sp.handle, curr_addr, remainder)
+				buf = ReadProcessMemory(sp.handle, current_addr, remainder)
+
 				if not buf:
-					curr_addr += remainder
+					current_addr += remainder
 					continue
+				buf = Buffer(buf)
 
-				while len(self._signatures) > 0:
-					n,m,s = self._signatures.pop()
-					ptr = self.find_pattern(buf, remainder, m, s)
-
-					if ptr:
-						self._pointers[n] = (current_addr + (ptr - buf))
+				for s in self.signatures:
+					if not s.offset:
+					if s in buf:
+						print('found match')
 					else:
-						retain.append((n,m,p))
-				self._signatures = retain
-				if not self._signatures:
-					return
+						print('not found match')
+
+
+				#debug_byte_array(buf)
 
 			current_addr += remainder
 
 		raise RuntimeError('Could not find all signatures in memory.')
 
-	def find_pattern(buf, data_size, mask, find):
-		pos = 0
-		size = len(mask)
-		for i in range(0,data_size):
-			if mask[pos] == '.' or buf[i] == find[pos]:
-				pos += 1
-				if pos == size:
-					return byref(buf)+(i-pos+1)*c.c_size_t
-			else:
-				i -= pos
-				pos = 0
-		return None
-
-
-	def __iter__(self):
-		return self
-
-	def __next__(self):
-		return next(self._signatures)
-		
+	
 class SP:
 
 	def __init__(self):
