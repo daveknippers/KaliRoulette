@@ -28,7 +28,6 @@ class MEMORY_BASIC_INFORMATION64(c.Structure):
 			("Type", c.c_long),
 			("__alignment2", c.c_long)]
 
-
 IS_64BIT = sys.maxsize > 2**32
 if IS_64BIT:
 	MBI = MEMORY_BASIC_INFORMATION64
@@ -57,7 +56,7 @@ def VirtualQueryEx(handle, addr):
 
 	return mbi if c.windll.kernel32.VirtualQueryEx(handle, addr, mbi_pointer, mbi_size) else None
 
-def ReadProcessMemory(handle, addr, buffer_size):
+def ReadProcessMemory_array(handle, addr, buffer_size):
 	data = c.create_string_buffer(buffer_size)
 
 	if IS_64BIT:
@@ -66,6 +65,16 @@ def ReadProcessMemory(handle, addr, buffer_size):
 		count = c.c_ulong(0)
 
 	return data if c.windll.kernel32.ReadProcessMemory(handle, c.c_void_p(addr), data, buffer_size, c.byref(count)) else None
+	
+def ReadProcessMemory_ctype(handle, addr, buffer_type):
+	data = buffer_type()
+
+	if IS_64BIT:
+		count = c.c_ulonglong(0)
+	else:
+		count = c.c_ulong(0)
+
+	return data if c.windll.kernel32.ReadProcessMemory(handle, c.c_void_p(addr), c.byref(data), c.sizeof(data), c.byref(count)) else None
 
 
 def GetModuleBase(handle):
@@ -95,37 +104,16 @@ class Buffer:
 			for j in range(len(m)):
 				if m[j] == 'x' and self.buf[i+j] == s[j]:
 					if j == len(m) - 1:
-						sig.set_offset(i+len(m))
+						sig.offset = i+len(m)
 						return True
 				elif m[j] != '.':
 					break
 				else:
 					if j == len(m) - 1:
-						sig.set_offset(i+len(m))
+						sig.offset = i+len(m)
 						return True
 		return False
-		'''
-		m = sig.reverse_mask
-		s = sig.reverse_sig
-
-		for i in range(len(self.buf) - len(m)):
-			for j in range(len(m)):
-				if m[j] == 'x' and s[j] == self.buf[i+j]:
-					if j == len(m) - 1:
-						sig.forward = False
-						sig.set_offset(i+len(m))
-						return True
-				elif m[j] != '.':
-					break
-				else:
-					if j == len(m) - 1:
-						sig.forward = False
-						sig.set_offset(i+len(m))
-						return True
-		'''
-
-
-						
+	
 class Signature:
 
 	def __init__(self,name,mask,sig):
@@ -133,21 +121,9 @@ class Signature:
 		self.name = name
 		self.mask = mask
 		self.sig = sig
-		'''
-		self.reverse_sig = copy(sig)
-		self.reverse_sig.reverse()
-		self.reverse_mask = copy(mask)
-		self.reverse_mask = ''.join(reversed(self.reverse_mask))
-		'''
 
 		self.base_addr = None
 		self.offset = None
-
-	def set_offset(self, offset):
-		self.offset = offset
-	
-	def set_base_addr(self, base_addr):
-		self.base_addr = base_addr
 
 	def addr(self):
 		return self.base_addr + self.offset
@@ -228,7 +204,7 @@ class Signatures(UserDict):
 
 			# MEM_COMMIT == 0x00001000
 			if mbi.State == 0x00001000:
-				buf = ReadProcessMemory(sp.handle, current_addr, remainder)
+				buf = ReadProcessMemory_array(sp.handle, current_addr, remainder)
 				if not buf:
 					current_addr += remainder
 					continue
@@ -237,7 +213,7 @@ class Signatures(UserDict):
 				while len(signatures) > 0:
 					s = signatures.pop()
 					if s in buf:
-						s.set_base_addr(current_addr)
+						s.base_addr = current_addr
 						found_sigs.append(s)
 					else:
 						not_found_sigs.append(s)
@@ -255,12 +231,15 @@ class Signatures(UserDict):
 			self[s.name] = (s.base_addr,s.offset)
 
 		print(sp.spelunky_base)
-		base,offset = self['game_container']
-		print(c.c_ulong(base))
-		print(c.c_ulong(offset))
-		p_game_container = ReadProcessMemory(sp.handle, base+offset, 4)
-		debug_byte_array(p_game_container.raw)
-		print(c.c_ulong(p_game_container))
+		
+		game_container_base,game_container_offset = self['game_container']
+		game_container_addr = game_container_base+game_container_offset
+		
+		print(c.c_ulong(game_container_base))
+		print(c.c_ulong(game_container_offset))
+		
+		p_game_container = ReadProcessMemory_ctype(sp.handle, game_container_addr, c.c_uint)
+		print(p_game_container)
 		input()
 
 
