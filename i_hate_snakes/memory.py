@@ -104,13 +104,13 @@ class Buffer:
 			for j in range(len(m)):
 				if m[j] == 'x' and self.buf[i+j] == s[j]:
 					if j == len(m) - 1:
-						sig.offset = i+len(m)
+						sig.offset = i
 						return True
 				elif m[j] != '.':
 					break
 				else:
 					if j == len(m) - 1:
-						sig.offset = i+len(m)
+						sig.offset = i
 						return True
 		return False
 	
@@ -140,18 +140,19 @@ class Signatures(UserDict):
 			 'player_container',
 			 'pent_container',
 			 'game_container',
-			 'level_container']
+			 'level_container',
+			 'ctrl_size',
+			 'run_switch_offs',
+			 'menu_data',
+			 'lvl_worm',
+			 'lvl_black_market',
+			 'lvl_hmansion',
+			 'lvl_yeti',
+			 'lvl_cog',
+			 'lvl_mothership',
+			 'lvl_dark']
 
 
-
-		'''
-		'ctrl_size',
-		'run_switch_offs',
-		'menu_data',
-		'gfx_options',
-		'level_flags',
-		'entity_data']
-		'''
 
 		masks = ['xxxxxxxx.xx.xx.xxxxxx.x',
 			 'xxx.....xxxxx.x.x.....x',
@@ -159,8 +160,12 @@ class Signatures(UserDict):
 			 'x.x.x......xxxxx......x......x',
 			 'x.....x.x.x......x.x....x',
 			 'x..x..x..x....x....x.....x',
-			 '.xxxxx.....x.....x.x']
-		
+			 '.xxxxx.....x.....x.x',
+			 'x...x..x.....x.x.x',
+			 'x..x.x.....x......x.x.x',
+			 'x.....x.x.x.....x.x']
+
+
 		sigs = [[ 0xBB, 0x0F, 0x00, 0x00, 0x00, 0x3B, 0xC3, 0x75, 
 			0xFF, 0x8B, 0x7E, 0xFF, 0xC7, 0x46, 0xFF, 0x1B,
 			0x00, 0x00, 0x00, 0x89, 0x5E, 0xFF, 0xE8],
@@ -183,9 +188,41 @@ class Signatures(UserDict):
 		      [ 0x8B, 0xCC, 0xCC, 0x8D, 0xCC, 0xCC, 0x8D, 0xCC, 
 			0xCC, 0xBF, 0xCC, 0xCC, 0xCC, 0xCC, 0xE8, 0xCC, 
 			0xCC, 0xCC, 0xCC, 0x8B, 0xCC, 0xAA, 0xAA, 0xAA, 
-			0xAA, 0x80]]
+			0xAA, 0x80],
+		      [ 0x89, 0xFF, 0xFF, 0xFF, 0x8D, 0xFF, 0xFF ,0x69,
+		        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x33, 0xFF, 0x8B,
+			0xFF, 0x89],
+		      [ 0x83, 0xFF, 0xFF, 0x75, 0xFF, 0x8B, 0xFF, 0xFF,
+			0xFF, 0xFF, 0xFF, 0x8D, 0xFF, 0xFF, 0xFF, 0xFF,
+			0xFF, 0xFF, 0x33, 0xFF, 0x39, 0xFF, 0x0F],
+		      [ 0xE9, 0xCC, 0xCC, 0xCC, 0xCC, 0x80, 0xCC, 0xCC,
+			0xCC, 0xCC, 0xCC, 0xCC, 0x74, 0xCC, 0x8D, 0xCC,
+			0xCC, 0xCC, 0x8B, 0xCC, 0x8B, 0xCC, 0xE8],
+		      [ 0x7F, 0xCC, 0x80, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC,
+			0xCC, 0x74, 0xCC, 0x8D, 0xCC, 0xCC, 0xCC, 0x8B,
+			0xCC, 0x8B, 0xCC, 0xE8],
+		      [ 0x7F, 0xCC, 0x80, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC,
+			0xCC, 0x74, 0xCC, 0x8B, 0xCC, 0x8D, 0xCC, 0xCC,
+			0xCC, 0x8B, 0xCC, 0x8B, 0xCC, 0xE8],
+		      [ 0x74, 0xCC, 0x80, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC,
+			0xCC, 0x74, 0xCC, 0x8D, 0xCC, 0xCC, 0xCC, 0xCC,
+			0x8B, 0xCC, 0x8B, 0xCC, 0x8B],
+		      [ 0x80, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0x74,
+			0xCC, 0x33, 0xCC, 0x83, 0xCC, 0xCC, 0x0F],
+		      [ 0xE9, 0xCC, 0xCC, 0xCC, 0xCC, 0x80, 0xCC, 0xCC,
+			0xCC, 0xCC, 0xCC, 0xCC, 0x74, 0xCC, 0x8D, 0xCC,
+			0xCC, 0xCC, 0xCC, 0x8B, 0xCC, 0x8B, 0xCC, 0x8B,
+			0xCC, 0xE8],
+		      [ 0x80, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0x00, 0x74,
+			0xCC, 0x8B, 0xCC, 0xE8, 0xCC, 0xCC, 0xCC, 0xCC,
+			0x84, 0xCC, 0x74, 0xCC, 0x6A]]
 
-		signatures = list(map(lambda x: Signature(*x),zip(names,masks,sigs)))
+		if len(masks) != len(names) or len(names) != len(sigs):
+			raise RuntimeError('Non-matching signatures defined in Signatures')
+
+		self._scan_memory(list(map(lambda x: Signature(*x),zip(names,masks,sigs))))
+
+	def _scan_memory(self, signatures)
 
 		BUF_SCAN_SIZE = 4096
 
@@ -228,18 +265,18 @@ class Signatures(UserDict):
 			raise RuntimeError('Could not find all signatures in memory.')
 		signatures = found_sigs
 		for s in signatures:
-			self[s.name] = (s.base_addr,s.offset)
+			self[s.name] = s.base_addr+s.offset
 
-		print(sp.spelunky_base)
-		
-		game_container_base,game_container_offset = self['game_container']
-		game_container_addr = game_container_base+game_container_offset
-		
-		print(c.c_ulong(game_container_base))
-		print(c.c_ulong(game_container_offset))
-		
-		p_game_container = ReadProcessMemory_ctype(sp.handle, game_container_addr, c.c_uint)
-		print(p_game_container)
+	def _setup_hooks(self):
+		game_container_addr = self['game_container']
+		p_current_game = ReadProcessMemory_ctype(sp.handle, game_container_addr+21, c.c_uint)
+		self['p_current_game'] = p_current_game
+
+		player_container_addr = self['player_container']
+		p_player_struct_ = ReadProcessMemory_ctype(sp.handle, player
+
+	
+		print(current_game_addr)
 		input()
 
 
@@ -288,26 +325,7 @@ class SP:
 			self.pid = spelunky_candidates[0][0]
 
 	def read_health(self):
-		p = self.signatures['player_data']
-		print('offset:',p.offset)
-		print('base:',p.base_addr)
-		print('addr:',p.addr())
-
-		p = self.signatures['player_data']
-		print('offset:',p.offset)
-		print('base:',p.base_addr)
-		print('addr:',p.addr())
-
-		#around_player_data = ReadProcessMemory(self.spelunky_process.handle, self.signatures['player_data'].addr()-500, 1000)
-		#debug_byte_array(around_player_data)
-
-		if not p:
-			print('could not read player_data')
-		else:
-			a = struct.unpack('<l',p.value)
-			print(a)
-			p_a = ReadProcessMemory(self.spelunky_process.handle,a+32,4)
-			print(p_a)
+		pass
 			
 
 
