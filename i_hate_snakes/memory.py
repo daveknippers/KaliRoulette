@@ -142,7 +142,7 @@ class Signatures(UserDict):
 			 'game_container',
 			 'level_container',
 			 'ctrl_size',
-			 'run_switch_offs',
+			 'run_switch',
 			 'menu_data',
 			 'lvl_worm',
 			 'lvl_black_market',
@@ -159,18 +159,18 @@ class Signatures(UserDict):
 			 'xx....xx.xx....xx....xx....xx....',
 			 'x.x.x......xxxxx......x......x',
 			 'x.....x.x.x......x.x....x',
-			 'x..x..x..x....x....x.....x',  #wat is this game_container
-             '.xxxxx.....x.....x.x',#wat  isthis level?  its not anywhere in gamehooks
-             'x...x.x...x..x.....x',#ctrl config
+			 'x..x..x..x....x....x.....x', # game_container
+			 '.xxxxx.....x.....x.x', # level_container
+			 'x...x..x.....x.x.x', # ctrl_size
 			 'x..x.x.....x......x.x.x',
-             'x.....x.x.x.....x.x', #menu_offset
-             'x....x......x.x...x.x.x',
-             'x.x......x.x...x.x.x',
-             'x.x......x.x.x...x.x.x',
-             'x.x......x.x....x.x.x',
-             'x......x.x.x..x',
-             'x....x......x.x....x.x.x.x',
-             'x.....xx.x.x....x.x.x']
+			 'x.....x.x.x.....x.x', # menu_offset
+			 'x....x......x.x...x.x.x',
+			 'x.x......x.x...x.x.x',
+			 'x.x......x.x.x...x.x.x',
+			 'x.x......x.x....x.x.x',
+			 'x......x.x.x..x',
+			 'x....x......x.x....x.x.x.x',
+			 'x.....xx.x.x....x.x.x']
 
 
 		sigs = [[ 0xBB, 0x0F, 0x00, 0x00, 0x00, 0x3B, 0xC3, 0x75,
@@ -195,17 +195,19 @@ class Signatures(UserDict):
 		      [ 0x8B, 0xCC, 0xCC, 0x8D, 0xCC, 0xCC, 0x8D, 0xCC,
 			0xCC, 0xBF, 0xCC, 0xCC, 0xCC, 0xCC, 0xE8, 0xCC,
 			0xCC, 0xCC, 0xCC, 0x8B, 0xCC, 0xAA, 0xAA, 0xAA,
-			0xAA, 0x80], #wtf is this   game container
-            [], #level container missing
+			0xAA, 0x80], # game container
+		      [ 0xCC, 0x01, 0x00, 0x00, 0x00, 0x01, 0xCC, 0xAA,
+			0xAA, 0xAA, 0xAA, 0x38, 0xCC, 0xCC, 0xCC, 0xCC, 
+			0xCC, 0x74, 0xCC, 0x88], # level_container
 		      [ 0x89, 0xFF, 0xFF, 0xFF, 0x8D, 0xFF, 0xFF ,0x69,
 		        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x33, 0xFF, 0x8B,
 			0xFF, 0x89],
 		      [ 0x83, 0xFF, 0xFF, 0x75, 0xFF, 0x8B, 0xFF, 0xFF,
 			0xFF, 0xFF, 0xFF, 0x8D, 0xFF, 0xFF, 0xFF, 0xFF,
 			0xFF, 0xFF, 0x33, 0xFF, 0x39, 0xFF, 0x0F],
-              [ 0x8B, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0x85, 0xAA,
-            0x74, 0xAA, 0x89, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xEB,
-            0xAA, 0x83],
+		      [ 0x8b, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0x85, 0xaa,
+			0x74, 0xAA, 0x89, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xEB,
+			0xAA, 0x83],
 		      [ 0xE9, 0xCC, 0xCC, 0xCC, 0xCC, 0x80, 0xCC, 0xCC,
 			0xCC, 0xCC, 0xCC, 0xCC, 0x74, 0xCC, 0x8D, 0xCC,
 			0xCC, 0xCC, 0x8B, 0xCC, 0x8B, 0xCC, 0xE8],
@@ -229,11 +231,15 @@ class Signatures(UserDict):
 			0x84, 0xCC, 0x74, 0xCC, 0x6A]]
 
 		if len(masks) != len(names) or len(names) != len(sigs):
-			raise RuntimeError('Non-matching signatures defined in Signatures')
+			raise RuntimeError('signature data not all the same length.')
+		for i in range(len(names)):
+			if len(masks[i]) != len(sigs[i]):
+				raise RuntimeError('Non-matching mask/sig pairs defined in Signatures at index {}'.format(i))
 
-		self._scan_memory(list(map(lambda x: Signature(*x),zip(names,masks,sigs))))
+		self._scan_memory(sp, list(map(lambda x: Signature(*x),zip(names,masks,sigs))))
+		self._setup_hooks(sp)
 
-	def _scan_memory(self, signatures)
+	def _scan_memory(self, sp, signatures):
 
 		BUF_SCAN_SIZE = 4096
 
@@ -278,17 +284,29 @@ class Signatures(UserDict):
 		for s in signatures:
 			self[s.name] = s.base_addr+s.offset
 
-	def _setup_hooks(self):
-		game_container_addr = self['game_container']
-		p_current_game = ReadProcessMemory_ctype(sp.handle, game_container_addr+21, c.c_uint)
+	def _setup_hooks(self, sp):
+		game_container = self['game_container']
+		p_current_game = ReadProcessMemory_ctype(sp.handle, game_container+21, c.c_ulong).value
 		self['p_current_game'] = p_current_game
+		current_game = ReadProcessMemory_ctype(sp.handle, p_current_game, c.c_ulong).value
+		self['current_game'] = current_game
 
-		player_container_addr = self['player_container']
-		p_player_struct_ = ReadProcessMemory_ctype(sp.handle, player
+		player_container = self['player_container']
+		player_ss = ReadProcessMemory_ctype(sp.handle, player_container+6, c.c_ulong).value
+		player_ss = 0
+		self['player_struct_size'] = player_ss
+
+		#test_mem_area = ReadProcessMemory_array(sp.handle, player_container, 200)
+		#debug_byte_array(test_mem_area)
+
+		self['player_health_offset'] = ReadProcessMemory_ctype(sp.handle, player_container+32, c.c_uint).value
+		self['player_bombs_offset'] = ReadProcessMemory_ctype(sp.handle, player_container+39, c.c_uint).value
+		self['player_ropes_offset'] = ReadProcessMemory_ctype(sp.handle, player_container+46, c.c_uint).value
+		
+		for location,value in self.items():
+			print(value,location,hex(int(value)))
 
 
-		print(current_game_addr)
-		input()
 
 
 
@@ -297,11 +315,11 @@ class Signatures(UserDict):
 
 
 
-class SP:
+class Spelunker:
 
 	def __init__(self):
 
-		self.set_pid()
+		self._set_pid()
 		self.spelunky_process = win32api.OpenProcess(win32con.PROCESS_CREATE_THREAD|
 								win32con.PROCESS_QUERY_INFORMATION|
 								win32con.PROCESS_SET_INFORMATION|
@@ -318,9 +336,9 @@ class SP:
 		if not self.spelunky_process:
 			raise RuntimeError('Couldn\'t open the spelunky process.')
 
-		self.signatures = Signatures(self)
+		self.mem = Signatures(self)
 
-	def set_pid(self):
+	def _set_pid(self):
 
 		WMI = GetObject('winmgmts:')
 		processes = WMI.InstancesOf('Win32_Process')
@@ -335,25 +353,29 @@ class SP:
 		else:
 			self.pid = spelunky_candidates[0][0]
 
-	def read_health(self):
-		pass
+	@property
+	def health(self):
+		return ReadProcessMemory_ctype(self.handle,self.mem['current_game']+self.mem['player_health_offset'],c.c_uint).value
+
+	@property
+	def bombs(self):
+		return ReadProcessMemory_ctype(self.handle,self.mem['current_game']+self.mem['player_bombs_offset'],c.c_uint).value
+
+	@property
+	def ropes(self):
+		return ReadProcessMemory_ctype(self.handle, self.mem['current_game']+self.mem['player_ropes_offset'],c.c_uint).value
 
 
 
-class Observer:
+def main():
+	sp = Spelunker()
+	print('reading every 5 seconds')
+	while True:
+		time.sleep(5)
+		print('health:',sp.health)
+		print('bombs:',sp.health)
+		print('ropes:',sp.health)
 
-	def __init__(self):
-		self.sp = SP()
-		print('reading every 5 seconds')
-		while True:
-			time.sleep(5)
-			#self.sp.read_health()
-			#print('health:',health)
-
-
-
-def memory_test():
-	obs = Observer()
 
 if __name__ == "__main__":
-	memory_test()
+	main()
