@@ -129,7 +129,7 @@ class Signature:
 		return self.base_addr + self.offset
 
 
-class Signatures(UserDict):
+class SpelunkySignatures(UserDict):
 
 	def __init__(self,sp):
 		UserDict.__init__(self)
@@ -140,10 +140,11 @@ class Signatures(UserDict):
 			 'player_container',
 			 'pent_container',
 			 'game_container',
-			 'level_container',
+			 'level_offset_container',
 			 'ctrl_size',
 			 'run_switch',
-			 'menu_data',
+			 'menu_offset',
+			 'game_state_ptr',
 			 'lvl_worm',
 			 'lvl_black_market',
 			 'lvl_hmansion',
@@ -160,10 +161,11 @@ class Signatures(UserDict):
 			 'x.x.x......xxxxx......x......x',
 			 'x.....x.x.x......x.x....x',
 			 'x..x..x..x....x....x.....x', # game_container
-			 '.xxxxx.....x.....x.x', # level_container
+			 '.xxxxx.....x.....x.x', # level_offset_container
 			 'x...x..x.....x.x.x', # ctrl_size
 			 'x..x.x.....x......x.x.x',
 			 'x.....x.x.x.....x.x', # menu_offset
+			 'xxxxxxxx.xx.xx.xxxxxx.x', # game_state_ptr
 			 'x....x......x.x...x.x.x',
 			 'x.x......x.x...x.x.x',
 			 'x.x......x.x.x...x.x.x',
@@ -198,16 +200,19 @@ class Signatures(UserDict):
 			0xAA, 0x80], # game container
 		      [ 0xCC, 0x01, 0x00, 0x00, 0x00, 0x01, 0xCC, 0xAA,
 			0xAA, 0xAA, 0xAA, 0x38, 0xCC, 0xCC, 0xCC, 0xCC, 
-			0xCC, 0x74, 0xCC, 0x88], # level_container
+			0xCC, 0x74, 0xCC, 0x88], # level_offset_container
 		      [ 0x89, 0xFF, 0xFF, 0xFF, 0x8D, 0xFF, 0xFF ,0x69,
 		        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x33, 0xFF, 0x8B,
-			0xFF, 0x89],
+			0xFF, 0x89], # ctrl_size
 		      [ 0x83, 0xFF, 0xFF, 0x75, 0xFF, 0x8B, 0xFF, 0xFF,
 			0xFF, 0xFF, 0xFF, 0x8D, 0xFF, 0xFF, 0xFF, 0xFF,
 			0xFF, 0xFF, 0x33, 0xFF, 0x39, 0xFF, 0x0F],
 		      [ 0x8b, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0x85, 0xaa,
 			0x74, 0xAA, 0x89, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xEB,
-			0xAA, 0x83],
+			0xAA, 0x83], # menu offset
+		      [ 0xBB, 0x0F, 0x00, 0x00, 0x00, 0x3B, 0xC3, 0x75,
+			0xFF, 0x8B, 0x7E, 0xFF, 0xC7, 0x46, 0xFF, 0x1B,
+			0x00, 0x00, 0x00, 0x89, 0x5E, 0xFF, 0xE8],
 		      [ 0xE9, 0xCC, 0xCC, 0xCC, 0xCC, 0x80, 0xCC, 0xCC,
 			0xCC, 0xCC, 0xCC, 0xCC, 0x74, 0xCC, 0x8D, 0xCC,
 			0xCC, 0xCC, 0x8B, 0xCC, 0x8B, 0xCC, 0xE8],
@@ -285,26 +290,40 @@ class Signatures(UserDict):
 			self[s.name] = s.base_addr+s.offset
 
 	def _setup_hooks(self, sp):
-		game_container = self['game_container']
-		p_current_game = ReadProcessMemory_ctype(sp.handle, game_container+21, c.c_ulong).value
-		self['p_current_game'] = p_current_game
-		current_game = ReadProcessMemory_ctype(sp.handle, p_current_game, c.c_ulong).value
-		self['current_game'] = current_game
+		self['p_current_game'] = ReadProcessMemory_ctype(sp.handle, self['game_container']+21, c.c_ulong).value
+		self['current_game'] = ReadProcessMemory_ctype(sp.handle, self['p_current_game'], c.c_ulong).value
 
 		player_container = self['player_container']
-		player_ss = ReadProcessMemory_ctype(sp.handle, player_container+6, c.c_ulong).value
-		player_ss = 0
-		self['player_struct_size'] = player_ss
 
-		#test_mem_area = ReadProcessMemory_array(sp.handle, player_container, 200)
-		#debug_byte_array(test_mem_area)
+		# setting player_ss to zero means we're one player only. the rest of the code omits player_ss as a simplification
+		#player_ss = ReadProcessMemory_ctype(sp.handle, player_container+6, c.c_ulong).value
+		#player_ss = 0
+		#self['player_struct_size'] = player_ss
 
 		self['player_health_offset'] = ReadProcessMemory_ctype(sp.handle, player_container+32, c.c_uint).value
 		self['player_bombs_offset'] = ReadProcessMemory_ctype(sp.handle, player_container+39, c.c_uint).value
 		self['player_ropes_offset'] = ReadProcessMemory_ctype(sp.handle, player_container+46, c.c_uint).value
-		
-		for location,value in self.items():
-			print(value,location,hex(int(value)))
+
+		self['level_offset'] = ReadProcessMemory_ctype(sp.handle, self['level_offset_container']+7, c.c_uint).value
+		self['is_dead_offset'] = int(ReadProcessMemory_ctype(sp.handle, self['level_offset_container']+7, c.c_uint).value)
+		self['is_dead_offset'] = self['is_dead_offset'] - 6
+		self['killed_by_offset'] = self['is_dead_offset'] + 0x52
+
+		self['game_state_offset'] = ReadProcessMemory_ctype(sp.handle, self['game_state_ptr']+0x15, c.c_char).value
+		self['game_state_offset'] = int.from_bytes(self['game_state_offset'],byteorder='little')
+
+		'''
+		print('player_health',hex(int(self['current_game']+self['player_health_offset'])))
+		print('player_bombs',hex(int(self['current_game']+self['player_bombs_offset'])))
+		print('player_ropes',hex(int(self['current_game']+self['player_ropes_offset'])))
+		print('level',hex(int(self['current_game']+self['level_offset'])))
+		print('game_state',hex(int(self['current_game']+self['game_state_offset'])))
+		'''
+
+		print()
+		for location,value in sorted(list(self.items()),key=lambda x: x[1]):
+			print(hex(int(value)),location)
+		print()
 
 
 
@@ -336,7 +355,7 @@ class Spelunker:
 		if not self.spelunky_process:
 			raise RuntimeError('Couldn\'t open the spelunky process.')
 
-		self.mem = Signatures(self)
+		self.mem = SpelunkySignatures(self)
 
 	def _set_pid(self):
 
@@ -365,16 +384,41 @@ class Spelunker:
 	def ropes(self):
 		return ReadProcessMemory_ctype(self.handle, self.mem['current_game']+self.mem['player_ropes_offset'],c.c_uint).value
 
+	@property
+	def level(self):
+		return ReadProcessMemory_ctype(self.handle, self.mem['current_game'] + self.mem['level_offset'], c.c_uint).value
+
+	@property
+	def game_state(Self):
+		return ReadProcessMemory_ctype(self.handle, self.mem['current_game'] + self.mem['game_state_offset'],c.c_uint).value
+
+	@property
+	def is_dead(self):
+		is_dead_addr = self.mem['current_game'] + self.mem['is_dead_offset']
+		return int.from_bytes(ReadProcessMemory_ctype(self.handle, is_dead_addr,c.c_char).value,byteorder='little')
+
+
+	@property
+	def last_killed_by(self):
+		return ReadProcessMemory_ctype(self.handle, self.mem['current_game'] + self.mem['killed_by_offset'],c.c_uint).value
+
+
+
+
 
 
 def main():
 	sp = Spelunker()
-	print('reading every 5 seconds')
 	while True:
 		time.sleep(5)
 		print('health:',sp.health)
-		print('bombs:',sp.health)
-		print('ropes:',sp.health)
+		print('bombs:',sp.bombs)
+		print('ropes:',sp.ropes)
+		print('level:',sp.level)
+		print('game_state:',sp.level)
+		print('is dead:',sp.is_dead)
+		print('last_killed_by:',sp.last_killed_by)
+		
 
 
 if __name__ == "__main__":
