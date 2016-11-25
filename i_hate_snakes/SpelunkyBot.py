@@ -6,12 +6,16 @@ import people
 import bets
 import odds
 from irc.client import ip_numstr_to_quad, ip_quad_to_numstr
+
 class BetBot(irc.bot.SingleServerIRCBot):
+
     def __init__(self, channel, nickname, server):
         irc.bot.SingleServerIRCBot.__init__(self, [server], nickname, nickname)
         self.channel = channel
+		
     def on_nicknameinuse(self, c, e):
         c.nick(c.get_nickname() + "_")
+		
     def on_welcome(self, c, e):
         print('joining {0}'.format(self.channel))
         c.send_raw("CAP REQ :twitch.tv/commands")
@@ -22,16 +26,19 @@ class BetBot(irc.bot.SingleServerIRCBot):
         self.user = people.users()
 
     def on_pubmsg(self, c, e):
+	
       a = e.arguments[0].split("!", 1) #splitsthe
       print(e)
       print(a)
       if (len(a) > 1):
           self.do_command(e, a[1].strip())
       return
+	  
     def on_whisper(self, c, e):
         self.on_pubmsg(c,e)
+		
     def do_command(self, e, cmd):
-        nick = 'spelunkybot'
+        nick = self._nickname
         cmd = cmd.split(" ")
         bet = 0
         if (len(cmd)> 1):
