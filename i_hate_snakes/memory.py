@@ -5,7 +5,7 @@ from ctypes import wintypes
 from copy import copy
 from collections import UserDict
 import win32api, win32con, struct, binascii, win32, sys, time, math
-
+import csv
 class MEMORY_BASIC_INFORMATION(c.Structure):
 
 	_fields_ = [ ("BaseAddress",  c.c_ulong),
@@ -199,7 +199,7 @@ class SpelunkySignatures(UserDict):
 			0xCC, 0xCC, 0xCC, 0x8B, 0xCC, 0xAA, 0xAA, 0xAA,
 			0xAA, 0x80], # game container
 		      [ 0xCC, 0x01, 0x00, 0x00, 0x00, 0x01, 0xCC, 0xAA,
-			0xAA, 0xAA, 0xAA, 0x38, 0xCC, 0xCC, 0xCC, 0xCC, 
+			0xAA, 0xAA, 0xAA, 0x38, 0xCC, 0xCC, 0xCC, 0xCC,
 			0xCC, 0x74, 0xCC, 0x88], # level_offset_container
 		      [ 0x89, 0xFF, 0xFF, 0xFF, 0x8D, 0xFF, 0xFF ,0x69,
 		        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x33, 0xFF, 0x8B,
@@ -319,12 +319,12 @@ class SpelunkySignatures(UserDict):
 		print('level',hex(int(self['current_game']+self['level_offset'])))
 		print('game_state',hex(int(self['current_game']+self['game_state_offset'])))
 		'''
-
+		'''
 		print()
 		for location,value in sorted(list(self.items()),key=lambda x: x[1]):
 			print(hex(int(value)),location)
 		print()
-
+		'''
 
 
 
@@ -356,6 +356,11 @@ class Spelunker:
 			raise RuntimeError('Couldn\'t open the spelunky process.')
 
 		self.mem = SpelunkySignatures(self)
+		self.deathDict={}
+		with open('death_list.csv') as csvfile:
+			rawData = csv.reader(csvfile, delimiter = ',')
+			for row in rawData:
+				self.deathDict[row[1]]=row[0]
 
 	def _set_pid(self):
 
@@ -400,8 +405,8 @@ class Spelunker:
 
 	@property
 	def last_killed_by(self):
-		return ReadProcessMemory_ctype(self.handle, self.mem['current_game'] + self.mem['killed_by_offset'],c.c_uint).value
-
+		deathNumber= ReadProcessMemory_ctype(self.handle, self.mem['current_game'] + self.mem['killed_by_offset'],c.c_uint).value
+		return self.deathDict[str(deathNumber)]
 
 
 
@@ -418,7 +423,7 @@ def main():
 		print('game_state:',sp.level)
 		print('is dead:',sp.is_dead)
 		print('last_killed_by:',sp.last_killed_by)
-		
+
 
 
 if __name__ == "__main__":
