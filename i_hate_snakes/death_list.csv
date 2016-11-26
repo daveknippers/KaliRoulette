@@ -6,7 +6,7 @@ spinner_spider,1037,F
 giant_spider,1018,F
 skeleton,1012,F
 scorpion,1029,F
-shopkeeper,1006,F
+shopkeeper,1006 or 1215(shot),F
 hired_help,,F
 tiki_man,1041,F
 blue_frog,1007,F
@@ -49,14 +49,14 @@ succubus,1051,F
 horsehead,1052,F
 oxface,1053,F
 yama,1056,F
-spike,,F
+spike,1100,F
 arrow_trap,122 ?,F
 powder_box,235,F
 boulder,120,F
-tiki_trap,,F
-acid,,F
+tiki_trap,1104,F
+acid,1105,F
 worm_block,182,F
-mine,,F
+mine,1107,F
 falling_platform,161,F
 turret,1058,F
 force_field,197 or 198,F
@@ -64,13 +64,13 @@ crush_trap,,F
 ceiling_trap,,F
 spike_ball,178,F
 lava,,F
-fall_damage,,F
+fall_damage,1201,F
 pushable_block,121,F
 item_contact,,F
-self_sacrifice,,F
-bomb,,F
+self_sacrifice,1214,F
+bomb,1202,F
 teleporter,,F
-abyss,,F
+abyss,1208,F
 plasma_cannon,,F
 moving_platform (from alien level),,F
 sceptre,,F

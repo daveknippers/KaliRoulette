@@ -1,3 +1,4 @@
 i_hate_snakes/oauth_token
 *.pyc
 *.db
+*.whl
