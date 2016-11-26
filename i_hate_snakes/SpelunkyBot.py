@@ -6,6 +6,7 @@ import people
 import bets
 import odds
 from irc.client import ip_numstr_to_quad, ip_quad_to_numstr
+from threading import Thread
 
 class BetBot(irc.bot.SingleServerIRCBot):
 
@@ -74,16 +75,24 @@ class BetBot(irc.bot.SingleServerIRCBot):
 			c.privmsg(str(channelName),"Good thing I have the ankh")
 		else:
 			c.privmsg(str(channelName),"/w "+ twitchUser+ " Not understood: " + str(cmd))
-def main():
-	with open('oauth_token', 'r') as fp:
+			
+def irc_thread(oauth_file,channel,nickname):
+	with open(oauth_file, 'r') as fp:
 		password = fp.read()
 
-	channel = '#rellim7'
-	nickname = 'spelunkybot'
 	server = irc.bot.ServerSpec('irc.twitch.tv', port=6667, password=password.strip())
-
+	
 	bot = BetBot(channel, nickname, server)
 	bot.start()
+	
+			
+def main():
+	thread = Thread(target = irc_thread,args=('oauth_token','#rellim7','spelunkybot')
+	thread.start() # this will start the thread and continue executing the current thread
+	thread.join() 
+	# when the code from the 'parent' thread gets here and calls join(), 
+	# it will wait until the 'child' thread terminates before returning from join().
+
 
 if __name__ == "__main__":
 	main()
