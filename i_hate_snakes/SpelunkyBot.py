@@ -3,19 +3,20 @@
 import irc.bot
 import irc.strings
 import people
-import bets as betEngine
-import odds as oddEngine
+from bets import bettingEngine
+from odds import oddsEngine
 from irc.client import ip_numstr_to_quad, ip_quad_to_numstr
 from threading import Thread
 
 class BetBot(irc.bot.SingleServerIRCBot):
 
-	def __init__(self, channel, nickname, server, bets, odds):
+	def __init__(self, channel, nickname, server):
 		irc.bot.SingleServerIRCBot.__init__(self, [server], nickname, nickname)
 		self.channel = channel
-		self.theOdds = odds
-		self.theBetter = bets
+		self.theOdds = oddsEngine()
+		self.theBetter = bettingEngine(self.theOdds)
 		self.user = people.users()
+		self.start()
 	def on_nicknameinuse(self, c, e):
 		c.nick(c.get_nickname() + "_")
 	def gameOver(self,condtion1, condition2, gold=None, ropes =None, bombs=None):
@@ -26,7 +27,6 @@ class BetBot(irc.bot.SingleServerIRCBot):
 		c.send_raw("CAP REQ :twitch.tv/commands")
 		c.join(self.channel)
 		c.set_rate_limit(100/30)
-
 
 	def on_pubmsg(self, c, e):
 	  a = e.arguments[0].split("!", 1) #splitsthe
@@ -58,10 +58,10 @@ class BetBot(irc.bot.SingleServerIRCBot):
 		channelName = self.channel
 		if cmd == "bet" and bet!= 0:
 			userBet = self.theBetter.placeBet(twitchUser, bet, condition1, condition2)
-			blanance = self.user.getUserBalance(twitchUser)
+			balance = self.user.getUserBalance(twitchUser)
 			if userBet == -2:
 				c.privmsg(str(channelName),"/w "+ twitchUser+ " you bet "+ str(bet) + " but you only have " + str(balance) + " Golden Daves so thats the amount you bet you cheater")
-			elif userbet == -1:
+			elif userBet == -1:
 				c.privmsg(str(channelName),"/w "+ twitchUser+ " you bet on something that doesnt exist.  Ive refunded your money but make sure you spell it right next time or maybe i wont be so nice")
 			else:
 				c.privmsg(str(channelName),"/w "+ twitchUser+ " odds are "+ str(userBet[2])+ " winnings =" + str(userBet[3]) + " Golden Daves balance = "+ str(balance) + " Golden Daves")
@@ -80,6 +80,8 @@ class BetBot(irc.bot.SingleServerIRCBot):
 			c.privmsg(str(channelName),"/w "+ twitchUser+ " hi")
 		elif cmd[0] == "ankh":
 			c.privmsg(str(channelName),"Good thing I have the ankh")
+		elif cmd[0] == "die" and (twitchUser == 'rellim7' or twitchUser == 'bunny_funeral'):
+			self.die()
 		else:
 			c.privmsg(str(channelName),"/w "+ twitchUser+ " Not understood: " + str(cmd))
 

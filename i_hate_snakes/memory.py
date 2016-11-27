@@ -349,10 +349,10 @@ class SpelunkySignatures(UserDict):
 		print('level',hex(int(self['current_game']+self['level_offset'])))
 		'''
 
-		print()
-		for location,value in sorted(list(self.items()),key=lambda x: x[1]):
-			print(hex(int(value)),location)
-		print()
+		#print()
+		#for location,value in sorted(list(self.items()),key=lambda x: x[1]):
+		#	print(hex(int(value)),location)
+		#print()
 
 class Spelunker:
 
