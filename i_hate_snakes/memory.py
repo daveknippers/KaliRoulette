@@ -84,6 +84,8 @@ def GetModuleBase(handle):
 	else:
 		count = c.c_ulong(0)
 
+	# if anyone has any clue at all on how to get this to work in a 64-bit python i'm all ears.
+	# hell, the Ex version of this call is DESIGNED for 64-bit.
 	if not c.windll.psapi.EnumProcessModulesEx(handle, c.byref(hModule), c.sizeof(hModule), c.byref(count),0x1):
 		raise RuntimeError('EnumProcessModules returned error code {}'.format(c.GetLastError()))
 	return hModule.value
@@ -136,7 +138,7 @@ class SpelunkySignatures(UserDict):
 
 		names = ['game_state',
 			 'timers',
-			 'gold_count',
+			 'gold_count_offset_ptr',
 			 'player_container',
 			 'pent_container',
 			 'game_container',
@@ -293,6 +295,8 @@ class SpelunkySignatures(UserDict):
 		self['p_current_game'] = ReadProcessMemory_ctype(sp.handle, self['game_container']+21, c.c_ulong).value
 		self['current_game'] = ReadProcessMemory_ctype(sp.handle, self['p_current_game'], c.c_ulong).value
 
+		self['gold_count_offset'] = ReadProcessMemory_ctype(sp.handle, self['gold_count_offset_ptr']+0x17,c.c_ulong).value
+
 		player_container = self['player_container']
 
 		# setting player_ss to zero means we're one player only. the rest of the code omits player_ss as a simplification
@@ -300,9 +304,15 @@ class SpelunkySignatures(UserDict):
 		#player_ss = 0
 		#self['player_struct_size'] = player_ss
 
+		# why is one offset always size 7 off the next instead of size 8?
 		self['player_health_offset'] = ReadProcessMemory_ctype(sp.handle, player_container+32, c.c_uint).value
 		self['player_bombs_offset'] = ReadProcessMemory_ctype(sp.handle, player_container+39, c.c_uint).value
 		self['player_ropes_offset'] = ReadProcessMemory_ctype(sp.handle, player_container+46, c.c_uint).value
+
+		# when you don't know how to figure out the memory/signature on your own, some
+		# flexibility is necessary.
+		self['player_favor_offset'] = self['player_ropes_offset']+0x5288
+
 
 		self['level_offset'] = ReadProcessMemory_ctype(sp.handle, self['level_offset_container']+7, c.c_uint).value
 		self['is_dead_offset'] = int(ReadProcessMemory_ctype(sp.handle, self['level_offset_container']+7, c.c_uint).value)
@@ -312,13 +322,13 @@ class SpelunkySignatures(UserDict):
 		self['game_state_offset'] = ReadProcessMemory_ctype(sp.handle, self['game_state_ptr']+0x15, c.c_char).value
 		self['game_state_offset'] = int.from_bytes(self['game_state_offset'],byteorder='little')
 
-		'''
-		print('player_health',hex(int(self['current_game']+self['player_health_offset'])))
-		print('player_bombs',hex(int(self['current_game']+self['player_bombs_offset'])))
-		print('player_ropes',hex(int(self['current_game']+self['player_ropes_offset'])))
-		print('level',hex(int(self['current_game']+self['level_offset'])))
-		print('game_state',hex(int(self['current_game']+self['game_state_offset'])))
-		'''
+
+		#print('player_container',hex(int(self['player_container']+self['current_game'])))
+		#print('player_health',hex(int(self['current_game']+self['player_health_offset'])))
+		#print('player_bombs',hex(int(self['current_game']+self['player_bombs_offset'])))
+		#print('player_ropes',hex(int(self['current_game']+self['player_ropes_offset'])))
+		#print('level',hex(int(self['current_game']+self['level_offset'])))
+		#print('game_state',hex(int(self['current_game']+self['game_state_offset'])))
 
 		print()
 		for location,value in sorted(list(self.items()),key=lambda x: x[1]):
@@ -402,6 +412,13 @@ class Spelunker:
 	def last_killed_by(self):
 		return ReadProcessMemory_ctype(self.handle, self.mem['current_game'] + self.mem['killed_by_offset'],c.c_uint).value
 
+	@property
+	def kali_favor(self):
+		return ReadProcessMemory_ctype(self.handle, self.mem['current_game'] + self.mem['player_favor_offset'],c.c_uint).value
+
+	@property
+	def gold(self):
+		return ReadProcessMemory_ctype(self.handle, self.mem['current_game'] + self.mem['gold_count_offset'],c.c_ushort).value
 
 
 
@@ -414,6 +431,7 @@ def main():
 		print('health:',sp.health)
 		print('bombs:',sp.bombs)
 		print('ropes:',sp.ropes)
+		print('gold:',sp.gold)
 		print('level:',sp.level)
 		print('game_state:',sp.level)
 		print('is dead:',sp.is_dead)
