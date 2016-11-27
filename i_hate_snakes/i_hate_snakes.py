@@ -3,8 +3,7 @@ from SpelunkyBot import irc_thread
 from memory import Spelunker
 from threading import Thread
 import irc, time
-from odds import oddsEngine
-from bets import bettingEngine
+
 
 def i_hate_snakes():
 
@@ -20,7 +19,7 @@ def i_hate_snakes():
 			level = sp.level
 			gold = 0 #replace with sp.gold when its there
 			killedBy = sp.last_killed_by
-			bets.tallyWinnings(level,killedBy,gold,ropes,bombs)
+			#bets.tallyWinnings(level,killedBy,gold,ropes,bombs)
 			print (killedBy)
 			tripped = True
 		elif sp.is_dead ==1 and tripped==True:

@@ -84,15 +84,15 @@ class BetBot(irc.bot.SingleServerIRCBot):
 			c.privmsg(str(channelName),"/w "+ twitchUser+ " Not understood: " + str(cmd))
 
 def irc_thread(oauth_file,channel,nickname):
-	odds = oddsEngine()
-	bets = bettingEngine(odds)
+	odds = oddEngine.oddsEngine()
+	bets = betEngine.bettingEngine(odds)
 
 	with open(oauth_file, 'r') as fp:
 		password = fp.read()
 
 	server = irc.bot.ServerSpec('irc.twitch.tv', port=6667, password=password.strip())
 
-	bot = BetBot(channel, nickname, server, bets, ods)
+	bot = BetBot(channel, nickname, server, bets, odds)
 	bot.start()
 
 
@@ -103,7 +103,7 @@ def main():
 	thread.start() # this will start the thread and continue executing the current thread
 	# when the code from the 'parent' thread gets here and calls join(),
 	# it will wait until the 'child' thread terminates before returning from join().
-
+	thread.wait()
 
 if __name__ == "__main__":
 	main()
