@@ -7,9 +7,8 @@ from odds import oddsEngine
 from bets import bettingEngine
 
 def i_hate_snakes():
-	odds = oddsEngine()
-	bets = bettingEngine(odds)
-	thread = Thread(target = irc_thread,args=('oauth_token','#rellim7','spelunkybot', bets, odds))
+
+	thread = Thread(target = irc_thread,args=('oauth_token','#rellim7','spelunkybot'))
 	thread.start()
 	sp = Spelunker()
 	tripped = False

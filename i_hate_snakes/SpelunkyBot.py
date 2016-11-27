@@ -83,7 +83,10 @@ class BetBot(irc.bot.SingleServerIRCBot):
 		else:
 			c.privmsg(str(channelName),"/w "+ twitchUser+ " Not understood: " + str(cmd))
 
-def irc_thread(oauth_file,channel,nickname, bets, ods):
+def irc_thread(oauth_file,channel,nickname):
+	odds = oddsEngine()
+	bets = bettingEngine(odds)
+
 	with open(oauth_file, 'r') as fp:
 		password = fp.read()
 
