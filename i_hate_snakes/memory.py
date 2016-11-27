@@ -4,6 +4,7 @@ import ctypes as c
 from ctypes import wintypes
 from copy import copy
 from collections import UserDict
+from functools import partial
 import win32api, win32con, struct, binascii, win32, sys, time, math
 
 class MEMORY_BASIC_INFORMATION(c.Structure):
@@ -145,7 +146,7 @@ class SpelunkySignatures(UserDict):
 			 'level_offset_container',
 			 'ctrl_size',
 			 'run_switch',
-			 'menu_offset',
+			 'menu_ptr',
 			 'game_state_ptr',
 			 'lvl_worm',
 			 'lvl_black_market',
@@ -155,19 +156,17 @@ class SpelunkySignatures(UserDict):
 			 'lvl_mothership',
 			 'lvl_dark']
 
-
-
 		masks = ['xxxxxxxx.xx.xx.xxxxxx.x',
 			 'xxx.....xxxxx.x.x.....x',
 			 'xx....xx.xx....xx....xx....xx....',
 			 'x.x.x......xxxxx......x......x',
 			 'x.....x.x.x......x.x....x',
-			 'x..x..x..x....x....x.....x', # game_container
-			 '.xxxxx.....x.....x.x', # level_offset_container
-			 'x...x..x.....x.x.x', # ctrl_size
+			 'x..x..x..x....x....x.....x',
+			 '.xxxxx.....x.....x.x',
+			 'x...x..x.....x.x.x',
 			 'x..x.x.....x......x.x.x',
-			 'x.....x.x.x.....x.x', # menu_offset
-			 'xxxxxxxx.xx.xx.xxxxxx.x', # game_state_ptr
+			 'x.....x.x.x.....x.x',
+			 'xxxxxxxx.xx.xx.xxxxxx.x',
 			 'x....x......x.x...x.x.x',
 			 'x.x......x.x...x.x.x',
 			 'x.x......x.x.x...x.x.x',
@@ -175,7 +174,6 @@ class SpelunkySignatures(UserDict):
 			 'x......x.x.x..x',
 			 'x....x......x.x....x.x.x.x',
 			 'x.....xx.x.x....x.x.x']
-
 
 		sigs = [[ 0xBB, 0x0F, 0x00, 0x00, 0x00, 0x3B, 0xC3, 0x75,
 			0xFF, 0x8B, 0x7E, 0xFF, 0xC7, 0x46, 0xFF, 0x1B,
@@ -199,19 +197,19 @@ class SpelunkySignatures(UserDict):
 		      [ 0x8B, 0xCC, 0xCC, 0x8D, 0xCC, 0xCC, 0x8D, 0xCC,
 			0xCC, 0xBF, 0xCC, 0xCC, 0xCC, 0xCC, 0xE8, 0xCC,
 			0xCC, 0xCC, 0xCC, 0x8B, 0xCC, 0xAA, 0xAA, 0xAA,
-			0xAA, 0x80], # game container
+			0xAA, 0x80], 
 		      [ 0xCC, 0x01, 0x00, 0x00, 0x00, 0x01, 0xCC, 0xAA,
 			0xAA, 0xAA, 0xAA, 0x38, 0xCC, 0xCC, 0xCC, 0xCC, 
-			0xCC, 0x74, 0xCC, 0x88], # level_offset_container
+			0xCC, 0x74, 0xCC, 0x88],
 		      [ 0x89, 0xFF, 0xFF, 0xFF, 0x8D, 0xFF, 0xFF ,0x69,
 		        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x33, 0xFF, 0x8B,
-			0xFF, 0x89], # ctrl_size
+			0xFF, 0x89],
 		      [ 0x83, 0xFF, 0xFF, 0x75, 0xFF, 0x8B, 0xFF, 0xFF,
 			0xFF, 0xFF, 0xFF, 0x8D, 0xFF, 0xFF, 0xFF, 0xFF,
 			0xFF, 0xFF, 0x33, 0xFF, 0x39, 0xFF, 0x0F],
 		      [ 0x8b, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0x85, 0xaa,
 			0x74, 0xAA, 0x89, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xEB,
-			0xAA, 0x83], # menu offset
+			0xAA, 0x83], 
 		      [ 0xBB, 0x0F, 0x00, 0x00, 0x00, 0x3B, 0xC3, 0x75,
 			0xFF, 0x8B, 0x7E, 0xFF, 0xC7, 0x46, 0xFF, 0x1B,
 			0x00, 0x00, 0x00, 0x89, 0x5E, 0xFF, 0xE8],
@@ -292,10 +290,10 @@ class SpelunkySignatures(UserDict):
 			self[s.name] = s.base_addr+s.offset
 
 	def _setup_hooks(self, sp):
-		self['p_current_game'] = ReadProcessMemory_ctype(sp.handle, self['game_container']+21, c.c_ulong).value
-		self['current_game'] = ReadProcessMemory_ctype(sp.handle, self['p_current_game'], c.c_ulong).value
+		self['current_game_ptr'] = ReadProcessMemory_ctype(sp.handle, self['game_container']+21, c.c_ulong).value
+		self['current_game_offset_uint'] = ReadProcessMemory_ctype(sp.handle, self['current_game_ptr'], c.c_ulong).value
 
-		self['gold_count_offset'] = ReadProcessMemory_ctype(sp.handle, self['gold_count_offset_ptr']+0x17,c.c_ulong).value
+		self['gold_count_offset_short'] = ReadProcessMemory_ctype(sp.handle, self['gold_count_offset_ptr']+0x17,c.c_ulong).value
 
 		player_container = self['player_container']
 
@@ -305,44 +303,56 @@ class SpelunkySignatures(UserDict):
 		#self['player_struct_size'] = player_ss
 
 		# why is one offset always size 7 off the next instead of size 8?
-		self['player_health_offset'] = ReadProcessMemory_ctype(sp.handle, player_container+32, c.c_uint).value
-		self['player_bombs_offset'] = ReadProcessMemory_ctype(sp.handle, player_container+39, c.c_uint).value
-		self['player_ropes_offset'] = ReadProcessMemory_ctype(sp.handle, player_container+46, c.c_uint).value
+		self['health_offset_uint'] = ReadProcessMemory_ctype(sp.handle, player_container+32, c.c_uint).value
+		self['bombs_offset_uint'] = ReadProcessMemory_ctype(sp.handle, player_container+39, c.c_uint).value
+		self['ropes_offset_uint'] = ReadProcessMemory_ctype(sp.handle, player_container+46, c.c_uint).value
+		
+		self['angry_shopkeeper_1_offset_char'] = self['health_offset_uint']-0x88
+		self['angry_shopkeeper_2_offset_char'] = self['health_offset_uint']-0xAB
+		
+		self['has_compass_offset_char'] = self['ropes_offset_uint']+0x5C
+		self['has_parachute_offset_char'] = self['ropes_offset_uint']+0x5D
+		self['has_jetpack_offset_char'] = self['ropes_offset_uint']+0x5E
+		self['has_climbing_gloves_offset_char'] = self['ropes_offset_uint']+0x5F
+		self['has_pitchers_mitt_offset_char'] = self['ropes_offset_uint']+0x60
+		self['has_spring_shoes_offset_char'] = self['ropes_offset_uint']+0x61
+		self['has_spike_shoes_offset_char'] = self['ropes_offset_uint']+0x62
+		self['has_spectacles_offset_char'] = self['ropes_offset_uint']+0x63
+		self['has_kapala_offset_char'] = self['ropes_offset_uint']+0x64
+		self['has_hedjet_offset_char'] = self['ropes_offset_uint']+0x65
+		self['has_udjat_eye_offset_char'] = self['ropes_offset_uint']+0x66
+		self['has_book_of_dead_offset_char'] = self['ropes_offset_uint']+0x67
+		self['has_ankh_offset_char'] = self['ropes_offset_uint']+0x68
+		self['has_paste_offset_char'] = self['ropes_offset_uint']+0x69
+		self['has_cape_offset_char'] = self['ropes_offset_uint']+0x6A
+		self['has_vlads_cape_offset_char'] = self['ropes_offset_uint']+0x6B
+		self['has_crysknife_offset_char'] = self['ropes_offset_uint']+0x6C
+		self['has_vlads_amulet_offset_char'] = self['ropes_offset_uint']+0x6D
+
+		print('angry_shopkeeper_1_offset_char',hex(self['current_game_offset_uint']+self['angry_shopkeeper_1_offset_char']))
+		print('angry_shopkeeper_2_offset_char',hex(self['current_game_offset_uint']+self['angry_shopkeeper_2_offset_char']))
 
 		# when you don't know how to figure out the memory/signature on your own, some
 		# flexibility is necessary.
-		self['player_favor_offset'] = self['player_ropes_offset']+0x5288
+		self['favour_offset_uint'] = self['ropes_offset_uint']+0x5288
 
+		self['level_offset_uint'] = ReadProcessMemory_ctype(sp.handle, self['level_offset_container']+7, c.c_uint).value
+		self['is_dead_offset_char'] = int(ReadProcessMemory_ctype(sp.handle, self['level_offset_container']+7, c.c_uint).value)
+		self['is_dead_offset_char'] = self['is_dead_offset_char'] - 6
+		self['killed_by_offset_uint'] = self['is_dead_offset_char'] + 0x52
 
-		self['level_offset'] = ReadProcessMemory_ctype(sp.handle, self['level_offset_container']+7, c.c_uint).value
-		self['is_dead_offset'] = int(ReadProcessMemory_ctype(sp.handle, self['level_offset_container']+7, c.c_uint).value)
-		self['is_dead_offset'] = self['is_dead_offset'] - 6
-		self['killed_by_offset'] = self['is_dead_offset'] + 0x52
-
-		self['game_state_offset'] = ReadProcessMemory_ctype(sp.handle, self['game_state_ptr']+0x15, c.c_char).value
-		self['game_state_offset'] = int.from_bytes(self['game_state_offset'],byteorder='little')
-
-
-		#print('player_container',hex(int(self['player_container']+self['current_game'])))
-		#print('player_health',hex(int(self['current_game']+self['player_health_offset'])))
-		#print('player_bombs',hex(int(self['current_game']+self['player_bombs_offset'])))
-		#print('player_ropes',hex(int(self['current_game']+self['player_ropes_offset'])))
-		#print('level',hex(int(self['current_game']+self['level_offset'])))
-		#print('game_state',hex(int(self['current_game']+self['game_state_offset'])))
+		'''
+		print('player_container',hex(int(self['player_container']+self['current_game'])))
+		print('player_health',hex(int(self['current_game']+self['player_health_offset'])))
+		print('player_bombs',hex(int(self['current_game']+self['player_bombs_offset'])))
+		print('player_ropes',hex(int(self['current_game']+self['player_ropes_offset'])))
+		print('level',hex(int(self['current_game']+self['level_offset'])))
+		'''
 
 		print()
 		for location,value in sorted(list(self.items()),key=lambda x: x[1]):
 			print(hex(int(value)),location)
 		print()
-
-
-
-
-
-
-
-
-
 
 class Spelunker:
 
@@ -366,7 +376,50 @@ class Spelunker:
 			raise RuntimeError('Couldn\'t open the spelunky process.')
 
 		self.mem = SpelunkySignatures(self)
+		self.current_game = self.mem['current_game_offset_uint']
+		
+		self.offset_uint = list(
+					filter(lambda z: len(z) > 0,
+					map(lambda y: y[:len(y) - len('_offset_uint')],
+					filter(lambda x: x.endswith('_offset_uint'),
+					self.mem.keys()))))
 
+		self.offset_char = list(
+					filter(lambda z: len(z) > 0,
+					map(lambda y: y[:len(y) - len('_offset_char')],
+					filter(lambda x: x.endswith('_offset_char'),
+					self.mem.keys()))))
+		self.offset_short = list(
+					filter(lambda z: len(z) > 0,
+					map(lambda y: y[:len(y) - len('_offset_short')],
+					filter(lambda x: x.endswith('_offset_short'),
+					self.mem.keys()))))
+
+		self.alt_attributes = {}
+		for k in self.offset_uint:
+			self.alt_attributes[k] = partial(self.read_uint,name=k+'_offset_uint')
+		for k in self.offset_char:
+			self.alt_attributes[k] = partial(self.read_char,name=k+'_offset_char')
+		for k in self.offset_short:
+			self.alt_attributes[k] = partial(self.read_short,name=k+'_offset_short')
+
+	def __getattr__(self,name):
+		try:
+			return self.alt_attributes[name]()
+		except KeyError:
+			msg = "'{0}' object has no attribute '{1}'"
+			raise AttributeError(msg.format(type(self).__name__, name))
+
+	def read_uint(self,name):
+		return ReadProcessMemory_ctype(self.handle,self.current_game+self.mem[name],c.c_uint).value
+
+	def read_short(self,name):
+		return ReadProcessMemory_ctype(self.handle,self.current_game+self.mem[name],c.c_short).value
+	
+	def read_char(self,name):
+		ch = ReadProcessMemory_ctype(self.handle,self.current_game+self.mem[name],c.c_char).value
+		return int.from_bytes(ch,byteorder='little')
+	
 	def _set_pid(self):
 
 		WMI = GetObject('winmgmts:')
@@ -381,62 +434,41 @@ class Spelunker:
 			raise RuntimeError('More than one active Spelunky process found.')
 		else:
 			self.pid = spelunky_candidates[0][0]
-
-	@property
-	def health(self):
-		return ReadProcessMemory_ctype(self.handle,self.mem['current_game']+self.mem['player_health_offset'],c.c_uint).value
-
-	@property
-	def bombs(self):
-		return ReadProcessMemory_ctype(self.handle,self.mem['current_game']+self.mem['player_bombs_offset'],c.c_uint).value
-
-	@property
-	def ropes(self):
-		return ReadProcessMemory_ctype(self.handle, self.mem['current_game']+self.mem['player_ropes_offset'],c.c_uint).value
-
-	@property
-	def level(self):
-		return ReadProcessMemory_ctype(self.handle, self.mem['current_game'] + self.mem['level_offset'], c.c_uint).value
-
-	@property
-	def game_state(Self):
-		return ReadProcessMemory_ctype(self.handle, self.mem['current_game'] + self.mem['game_state_offset'],c.c_uint).value
-
-	@property
-	def is_dead(self):
-		is_dead_addr = self.mem['current_game'] + self.mem['is_dead_offset']
-		return int.from_bytes(ReadProcessMemory_ctype(self.handle, is_dead_addr,c.c_char).value,byteorder='little')
-
-
-	@property
-	def last_killed_by(self):
-		return ReadProcessMemory_ctype(self.handle, self.mem['current_game'] + self.mem['killed_by_offset'],c.c_uint).value
-
-	@property
-	def kali_favor(self):
-		return ReadProcessMemory_ctype(self.handle, self.mem['current_game'] + self.mem['player_favor_offset'],c.c_uint).value
-
-	@property
-	def gold(self):
-		return ReadProcessMemory_ctype(self.handle, self.mem['current_game'] + self.mem['gold_count_offset'],c.c_ushort).value
-
-
-
-
+			
 
 def main():
 	sp = Spelunker()
 	while True:
+		print('gold_count',sp.gold_count)
+		print('health',sp.health)
+		print('bombs',sp.bombs)
+		print('ropes',sp.ropes)
+		print('favour',sp.favour)
+		print('level',sp.level)
+		print('killed_by',sp.killed_by)
+		print('angry_shopkeeper_1',sp.angry_shopkeeper_1)
+		print('angry_shopkeeper_2',sp.angry_shopkeeper_2)
+		print('has_compass',sp.has_compass)
+		print('has_parachute',sp.has_parachute)
+		print('has_jetpack',sp.has_jetpack)
+		print('has_climbing_gloves',sp.has_climbing_gloves)
+		print('has_pitchers_mitt',sp.has_pitchers_mitt)
+		print('has_spring_shoes',sp.has_spring_shoes)
+		print('has_spike_shoes',sp.has_spike_shoes)
+		print('has_spectacles',sp.has_spectacles)
+		print('has_kapala',sp.has_kapala)
+		print('has_hedjet',sp.has_hedjet)
+		print('has_udjat_eye',sp.has_udjat_eye)
+		print('has_book_of_dead',sp.has_book_of_dead)
+		print('has_ankh',sp.has_ankh)
+		print('has_paste',sp.has_paste)
+		print('has_cape',sp.has_cape)
+		print('has_vlads_cape',sp.has_vlads_cape)
+		print('has_crysknife',sp.has_crysknife)
+		print('has_vlads_amulet',sp.has_vlads_amulet)
+		print()
 		time.sleep(5)
-		print('health:',sp.health)
-		print('bombs:',sp.bombs)
-		print('ropes:',sp.ropes)
-		print('gold:',sp.gold)
-		print('level:',sp.level)
-		print('game_state:',sp.level)
-		print('is dead:',sp.is_dead)
-		print('last_killed_by:',sp.last_killed_by)
-		
+
 
 
 if __name__ == "__main__":
