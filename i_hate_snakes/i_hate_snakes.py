@@ -5,14 +5,15 @@ from threading import Thread
 import irc, time, csv
 
 
-def i_hate_snakes():
+def i_hate_snakes(bot):
 
-	with open('oauth_token', 'r') as fp:
-		password = fp.read()
-	server = irc.bot.ServerSpec('irc.twitch.tv', port=6667, password=password.strip())
+	#with open('oauth_token', 'r') as fp:
+	#	password = fp.read()
+	#server = irc.bot.ServerSpec('irc.twitch.tv', port=6667, password=password.strip())
 
-	thread = Thread(target = BetBot,args=('#rellim7','spelunkybot',server))
-	thread.start()
+	#thread = Thread(target = BetBot,args=('#rellim7','spelunkybot',server))
+	#thread.start()
+	print('snakes')
 	deathDict={}
 	with open('death_list.csv') as csvfile:
 		rawData = csv.reader(csvfile, delimiter = ',')
@@ -29,7 +30,7 @@ def i_hate_snakes():
 			gold = 0 #replace with sp.gold when its there
 			killedBy = sp.last_killed_by
 			killedBy = deathDict[str(killedBy)]
-			thread.gameOver(level,killedBy,gold,ropes,bombs)
+			bot.gameOver(level,killedBy,gold,ropes,bombs)
 			print (killedBy)
 			tripped = True
 		elif sp.is_dead ==1 and tripped==True:

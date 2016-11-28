@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-
+import i_hate_snakes
 import irc.bot
 import irc.strings
 import people
@@ -86,7 +86,7 @@ class BetBot(irc.bot.SingleServerIRCBot):
 			c.privmsg(str(channelName),"/w "+ twitchUser+ " Not understood: " + str(cmd))
 
 def irc_thread(oauth_file,channel,nickname):
-	odds = oddEngine.oddsEngine()
+	odds = oddsEngine.oddsEngine()
 	bets = betEngine.bettingEngine(odds)
 
 	with open(oauth_file, 'r') as fp:
@@ -99,13 +99,18 @@ def irc_thread(oauth_file,channel,nickname):
 
 
 def main():
-	ods = oddEngine.oddsEngine()
-	bets = betEngine.bettingEngine(ods)
-	thread = Thread(target = irc_thread,args=('oauth_token','#rellim7','spelunkybot', bets, ods))
-	thread.start() # this will start the thread and continue executing the current thread
-	# when the code from the 'parent' thread gets here and calls join(),
-	# it will wait until the 'child' thread terminates before returning from join().
-	thread.wait()
+	odds = oddsEngine()
+	bets = bettingEngine(odds)
+
+	with open('oauth_token', 'r') as fp:
+		password = fp.read()
+
+	server = irc.bot.ServerSpec('irc.twitch.tv', port=6667, password=password.strip())
+
+	bot = BetBot('#rellim7','spelunkybot', server)
+	thread =Thread(target =i_hate_snakes, args = (bot))
+	thread.start()
+	bot.start()
 
 if __name__ == "__main__":
 	main()
