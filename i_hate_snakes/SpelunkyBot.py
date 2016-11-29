@@ -16,12 +16,27 @@ class BetBot(irc.bot.SingleServerIRCBot):
 		self.theOdds = oddsEngine()
 		self.theBetter = bettingEngine(self.theOdds)
 		self.user = people.users()
+		self.sp = Spelunker()
+		self.is_dead = sp.is_dead
+		self.execute_every(5,self.process_spelunker)
 		self.start()
+
+	def process_spelunker(self):
+		death_state = int(self.is_dead)
+
+		if not self.is_dead and not death_state:
+			self.is_dead = death_state
+		elif not self.is_dead and death_state:
+			gameOver()
+
+
 	def on_nicknameinuse(self, c, e):
 		c.nick(c.get_nickname() + "_")
+
 	def gameOver(self,condtion1, condition2, gold=None, ropes =None, bombs=None):
 		self.theBetter.tallyWinnings(condtion1, condition2, gold, ropes, bombs)
 		c.privmsg(str(channelName),"Bets calculated " + condtion1 + " and "+ condition2 + " was the death cericumstances.")
+
 	def on_welcome(self, c, e):
 		print('joining {0}'.format(self.channel))
 		c.send_raw("CAP REQ :twitch.tv/commands")
@@ -35,6 +50,7 @@ class BetBot(irc.bot.SingleServerIRCBot):
 	  if (len(a) > 1):
 		  self.do_command(e, a[1].strip())
 	  return
+
 	def on_whisper(self, c, e):
 		self.on_pubmsg(c,e)
 
@@ -108,9 +124,8 @@ def main():
 	server = irc.bot.ServerSpec('irc.twitch.tv', port=6667, password=password.strip())
 
 	bot = BetBot('#rellim7','spelunkybot', server)
-	thread =Thread(target =i_hate_snakes, args = (bot))
-	thread.start()
 	bot.start()
+
 
 if __name__ == "__main__":
 	main()
