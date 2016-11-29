@@ -53,19 +53,24 @@ class bettingEngine():
 			i+=1
 		return succsess
 
-	def tallyWinnings(self, condtion1, condition2, gold=None, ropes=None, bombs=None):
+	def tallyWinnings(self, condition1, condition2, gold=None, ropes=None, bombs=None):
 		for i in self.BetsArray:
 			if(i[5] !=None):
-				if((i[4] == condtion1 and i[5] == condtion2) or (i[4] == condtion2 and i[5] == condtion1)):
+				if((i[4] == condition1 and i[5] == condition2) or (i[4] == condition2 and i[5] == condition1)):
 					user = i[0]
 					potWinning = i[3]
+					print ( "WININGS")
 					self.users.bettingUserGold(user, potWinning)
-			elif(i[4] == condtion1 or i[4] == condtion2):
+			elif(i[4] == condition1 or i[4] == condition2):
 				user = i[0]
 				potWinning = i[3]
+				print("oother winings")
 				self.users.bettingUserGold(user, potWinning)
+				"""
 			else:
-				print (condtion1 + " AND " + condtion2+ " are not known or a sucide happend")
+				print (str(condition1) + " AND " + str(condition2)+ " are not known or a sucide happend")
 				user = i[0]
 				self.users.postOutcomeUserGold(user)
+				"""
+			self.users.postOutcomeUserGold(i[0])
 		self.BetsArray = []
