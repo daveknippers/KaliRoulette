@@ -494,6 +494,7 @@ def main():
 		print('ropes',sp.ropes)
 		print('favour',sp.favour)
 		print('level',sp.level)
+		print('is_dead',sp.is_dead)
 		print('killed_by',sp.killed_by)
 		print('lvl_dark',sp.lvl_dark)
 		print('lvl_worm',sp.lvl_worm)
