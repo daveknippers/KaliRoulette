@@ -314,7 +314,7 @@ class SpelunkySignatures(UserDict):
 		self['current_game_ptr'] = ReadProcessMemory_ctype(sp.handle, self['game_container']+21, c.c_ulong).value
 		self['current_game_offset_uint'] = ReadProcessMemory_ctype(sp.handle, self['current_game_ptr'], c.c_ulong).value
 
-		self['gold_count_offset_short'] = ReadProcessMemory_ctype(sp.handle, self['gold_count_offset_ptr']+0x17,c.c_ulong).value
+		self['gold_count_offset_uint'] = ReadProcessMemory_ctype(sp.handle, self['gold_count_offset_ptr']+0x17,c.c_ulong).value
 
 		player_container = self['player_container']
 
