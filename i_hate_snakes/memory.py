@@ -342,7 +342,7 @@ class SpelunkySignatures(UserDict):
 		# ideally i'd be able to figure out how to get memory signatures for each of these myself,
 		# but i don't at present.
 
-		self['favour_offset_uint'] = self['ropes_offset_uint']+0x5288
+		self['favour_offset_signed_uint'] = self['ropes_offset_uint']+0x5288
 
 		self['is_dead_offset_char'] = int(ReadProcessMemory_ctype(sp.handle, self['level_offset_container']+7, c.c_uint).value)
 		self['is_dead_offset_char'] = self['is_dead_offset_char'] - 6
@@ -418,6 +418,12 @@ class Spelunker:
 					map(lambda y: y[:len(y) - len('_offset_uint')],
 					filter(lambda x: x.endswith('_offset_uint'),
 					self.mem.keys()))))
+					
+		self.offset_signed_uint = list(
+					filter(lambda z: len(z) > 0,
+					map(lambda y: y[:len(y) - len('_offset_signed_uint')],
+					filter(lambda x: x.endswith('_offset_signed_uint'),
+					self.mem.keys()))))
 
 		self.offset_char = list(
 					filter(lambda z: len(z) > 0,
@@ -437,6 +443,8 @@ class Spelunker:
 		self.alt_attributes = {}
 		for k in self.offset_uint:
 			self.alt_attributes[k] = partial(self.read_uint,name=k+'_offset_uint')
+		for k in self.offset_signed_uint:
+			self.alt_attributes[k] = partial(self.read_signed_uint,name=k+'_offset_signed_uint')
 		for k in self.offset_char:
 			self.alt_attributes[k] = partial(self.read_char,name=k+'_offset_char')
 		for k in self.offset_short:
@@ -458,7 +466,12 @@ class Spelunker:
 	# read and return a uint from the specificed named memory location
 	def read_uint(self,name):
 		return ReadProcessMemory_ctype(self.handle,self.current_game+self.mem[name],c.c_uint).value
-
+		
+	# read and return a uint from the specificed named memory location, and convert to its signed representation
+	def read_signed_uint(self,name):
+		block = ReadProcessMemory_ctype(self.handle,self.current_game+self.mem[name],c.c_uint).value
+		return struct.unpack('l', struct.pack('L',block & 0xffffffff))[0]
+			
 	# read and return a short from the specificed named memory location
 	def read_short(self,name):
 		return ReadProcessMemory_ctype(self.handle,self.current_game+self.mem[name],c.c_short).value

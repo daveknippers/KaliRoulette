@@ -8,7 +8,7 @@ import sqlite3
 
 pd.set_option('display.max_columns', None)
 
-# to-do: make this part of Spelunker
+# to-do: make this part of Spelunker, it's ugly here.
 ALL_ATTRIBUTES = ['level',
 			'is_dead',
 			'killed_by',
@@ -45,7 +45,7 @@ ALL_ATTRIBUTES = ['level',
 			'has_crysknife',
 			'has_vlads_amulet']
 
-def main(db_file='death_collection.db'):
+def death_collector(db_file='death_collection.db'):
 	
 	sp = Spelunker()
 	
@@ -117,5 +117,5 @@ def main(db_file='death_collection.db'):
 	
 
 if __name__ == "__main__":
-	main()
+	death_collector()
 
