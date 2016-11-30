@@ -6,6 +6,7 @@ spinner_spider,1037
 giant_spider,1018
 skeleton,1012
 scorpion,1029
+caveman,1004
 shopkeeper,1006
 shopkeeper,1215
 hired_help, ?
@@ -51,9 +52,9 @@ horsehead,1052
 oxface,1053
 yama,1056
 spike,1100
-arrow_trap,122
+arrow_trap,1101
 powder_box,235
-boulder,120
+boulder,1103
 tiki_trap,1104
 acid,1105,
 worm_block,182
@@ -71,7 +72,7 @@ pushable_block,121
 item_contact,1200
 self_sacrifice,1214
 bomb,1202
-teleporter,???????
+teleporter,1206
 abyss,1208
 plasma_cannon,???????
 moving_platform (from alien level),?????????

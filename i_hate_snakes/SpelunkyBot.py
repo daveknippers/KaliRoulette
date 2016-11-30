@@ -1,8 +1,8 @@
 #! /usr/bin/env python
-import i_hate_snakes
+from memory import Spelunker
 import irc.bot
 import irc.strings
-import people
+import people, csv
 from bets import bettingEngine
 from odds import oddsEngine
 from irc.client import ip_numstr_to_quad, ip_quad_to_numstr
@@ -17,17 +17,22 @@ class BetBot(irc.bot.SingleServerIRCBot):
 		self.theBetter = bettingEngine(self.theOdds)
 		self.user = people.users()
 		self.sp = Spelunker()
-		self.is_dead = sp.is_dead
-		self.execute_every(5,self.process_spelunker)
+		self.is_dead = self.sp.is_dead
+		self.deathDict={}
+		with open('death_list.csv') as csvfile:
+			rawData = csv.reader(csvfile, delimiter = ',')
+			for row in rawData:
+				self.deathDict[row[1]]=row[0]
+		self.reactor.execute_every(5,self.process_spelunker)
 		self.start()
 
 	def process_spelunker(self):
-		death_state = int(self.is_dead)
+		death_state = int(self.sp.is_dead)
+		if not self.is_dead and death_state:
+			killedBy = self.deathDict[str(self.sp.killed_by)]
+			self.gameOver(self.sp.level, killedBy, self.sp.gold_count, self.sp.ropes,self.sp.bombs)
+		self.is_dead = death_state
 
-		if not self.is_dead and not death_state:
-			self.is_dead = death_state
-		elif not self.is_dead and death_state:
-			gameOver()
 
 
 	def on_nicknameinuse(self, c, e):
@@ -35,7 +40,7 @@ class BetBot(irc.bot.SingleServerIRCBot):
 
 	def gameOver(self,condtion1, condition2, gold=None, ropes =None, bombs=None):
 		self.theBetter.tallyWinnings(condtion1, condition2, gold, ropes, bombs)
-		c.privmsg(str(channelName),"Bets calculated " + condtion1 + " and "+ condition2 + " was the death cericumstances.")
+		self.connection.privmsg(str(self.channel),"Bets calculated. Died on level "+str(condtion1) + " and "+ str(condition2) + " was the killer.")
 
 	def on_welcome(self, c, e):
 		print('joining {0}'.format(self.channel))
@@ -62,12 +67,18 @@ class BetBot(irc.bot.SingleServerIRCBot):
 			if (len(cmd)== 3):
 				condition1 = str(cmd[2])
 				condition2 = None
-				bet = int(cmd[1])
+				try:
+					bet = int(cmd[1])
+				except:
+					bet = 0
 				cmd = cmd[0]
 			elif (len(cmd)== 4):
 				condition1 = str(cmd[2])
 				condition2 = str(cmd[3])
-				bet = int(cmd[1])
+				try:
+					bet = int(cmd[1])
+				except:
+					bet = 0
 				cmd = cmd[0]
 		c = self.connection
 		twitchUser = str(e.source.split("!")[0])
