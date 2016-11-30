@@ -6,6 +6,7 @@ spinner_spider,1037
 giant_spider,1018
 skeleton,1012
 scorpion,1029
+caveman,1004
 shopkeeper,1006
 shopkeeper,1215
 hired_help, ?
@@ -71,7 +72,7 @@ pushable_block,121
 item_contact,1200
 self_sacrifice,1214
 bomb,1202
-teleporter,???????
+teleporter,1206
 abyss,1208
 plasma_cannon,???????
 moving_platform (from alien level),?????????

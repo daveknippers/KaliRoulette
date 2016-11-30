@@ -21,10 +21,13 @@ class bettingEngine():
 		"""
 		# 1
 		userMoney = self.users.getUserBalance(twitchUser)
-
+		lowMoneyFlag = False
 		# 2
+		if bet < 0:
+			bet = 0
 		if userMoney < bet:
-			return -2
+			bet = userMoney
+			lowMoneyFlag = True
 		remaining = self.users.bettingUserGold(twitchUser,-bet)
 		# 3 and 4
 		bettingOdds = self.odds.getOdds(condition1, condition2)
@@ -35,8 +38,9 @@ class bettingEngine():
 		potWinning = int(bettingOdds) * int(bet)
 		betTime = time.time()
 		userBet = [twitchUser, bet, bettingOdds, potWinning, condition1, condition2, betTime]
-		print (userBet)
 		self.BetsArray.append(userBet)
+		if lowMoneyFlag:
+			return -2
 		return userBet
 	def stopBet(self, userName):
 		succsess = False
@@ -55,16 +59,18 @@ class bettingEngine():
 
 	def tallyWinnings(self, condition1, condition2, gold=None, ropes=None, bombs=None):
 		for i in self.BetsArray:
+			first = str(i[4])
+			second = str(i[5])
 			if(i[5] !=None):
-				if((i[4] == condition1 and i[5] == condition2) or (i[4] == condition2 and i[5] == condition1)):
+				if((first == str(condition1) and second == str(condition2)) or (first == str(condition2) and second == str(condition1))):
 					user = i[0]
 					potWinning = i[3]
-					print ( "WININGS")
+					print(user,'bigmoney')
 					self.users.bettingUserGold(user, potWinning)
-			elif(i[4] == condition1 or i[4] == condition2):
+			elif(first == str(condition1) or first == str(condition2)):
 				user = i[0]
 				potWinning = i[3]
-				print("oother winings")
+				print(user)
 				self.users.bettingUserGold(user, potWinning)
 				"""
 			else:
