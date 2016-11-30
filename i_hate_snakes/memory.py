@@ -29,6 +29,7 @@ class MEMORY_BASIC_INFORMATION64(c.Structure):
 			("Type", c.c_long),
 			("__alignment2", c.c_long)]
 
+# this probably isn't kosher.
 IS_64BIT = sys.maxsize > 2**32
 if IS_64BIT:
 	MBI = MEMORY_BASIC_INFORMATION64
@@ -50,6 +51,7 @@ def debug_byte_array(buf):
 		result = '\n'.join(str_out)
 		print(result)
 
+# we check memory and see if it's been 'commited' by the spelunky process
 def VirtualQueryEx(handle, addr):
 	mbi = MBI()
 	mbi_pointer = c.byref(mbi)
@@ -57,6 +59,7 @@ def VirtualQueryEx(handle, addr):
 
 	return mbi if c.windll.kernel32.VirtualQueryEx(handle, addr, mbi_pointer, mbi_size) else None
 
+# read memory into an arbitrary sized char array 
 def ReadProcessMemory_array(handle, addr, buffer_size):
 	data = c.create_string_buffer(buffer_size)
 
@@ -67,6 +70,7 @@ def ReadProcessMemory_array(handle, addr, buffer_size):
 
 	return data if c.windll.kernel32.ReadProcessMemory(handle, c.c_void_p(addr), data, buffer_size, c.byref(count)) else None
 
+# read memory into a specific c type
 def ReadProcessMemory_ctype(handle, addr, buffer_type):
 	data = buffer_type()
 
@@ -77,7 +81,7 @@ def ReadProcessMemory_ctype(handle, addr, buffer_type):
 
 	return data if c.windll.kernel32.ReadProcessMemory(handle, c.c_void_p(addr), c.byref(data), c.sizeof(data), c.byref(count)) else None
 
-
+# get the base addr of a handle
 def GetModuleBase(handle):
 	hModule = c.c_ulong()
 	if IS_64BIT:
@@ -91,6 +95,9 @@ def GetModuleBase(handle):
 		raise RuntimeError('EnumProcessModules returned error code {}'.format(c.GetLastError()))
 	return hModule.value
 
+# takes a ctypes string buffer (as created by ReadProcessMemory_array).
+# the __contains__ definition allows one to check if a Signature
+# object (defined below) is 'in' it 
 class Buffer:
 
 	def __init__(self, buf):
@@ -117,6 +124,7 @@ class Buffer:
 						return True
 		return False
 
+# nothing too complicated
 class Signature:
 
 	def __init__(self,name,mask,sig):
@@ -131,7 +139,9 @@ class Signature:
 	def addr(self):
 		return self.base_addr + self.offset
 
-
+# UserDict allows dictionary assignment to self,
+# and allows instances of SpelunkySignatures to 
+# behave as a dictionary.
 class SpelunkySignatures(UserDict):
 
 	def __init__(self,sp):
@@ -244,14 +254,19 @@ class SpelunkySignatures(UserDict):
 		self._scan_memory(sp, list(map(lambda x: Signature(*x),zip(names,masks,sigs))))
 		self._setup_hooks(sp)
 
+	# scans for valid memory with VirtualQueryEx, then takes every block of 
+	# valid memory and checks for each signature in 4096 sized chunks.
+	# stops when they've all been found.
 	def _scan_memory(self, sp, signatures):
 
 		BUF_SCAN_SIZE = 4096
 
+		# spelunky_base from GetModuleBase
 		current_addr = sp.spelunky_base
 
 		found_sigs = []
 
+		# what's the max memory range here?
 		while(current_addr < 0x7FFFFFFF):
 			mbi = VirtualQueryEx(sp.handle, current_addr)
 			if not mbi:
@@ -271,6 +286,7 @@ class SpelunkySignatures(UserDict):
 				not_found_sigs = []
 				while len(signatures) > 0:
 					s = signatures.pop()
+					# look at Buffer's __contains__
 					if s in buf:
 						s.base_addr = current_addr
 						found_sigs.append(s)
@@ -286,9 +302,14 @@ class SpelunkySignatures(UserDict):
 		if len(signatures) > 0:
 			raise RuntimeError('Could not find all signatures in memory.')
 		signatures = found_sigs
+
+		# replace each Signature object with an address
 		for s in signatures:
 			self[s.name] = s.base_addr+s.offset
 
+	# use the memory addresses found in _scan_memory to wrangle some pointers and addresses we're interested in.
+	# the naming scheme for the dictonary entries is important; if they don't match the pattern *_offset_uint,
+	# *_offset_char or *_offset_short they will be ignored by Spelunker (the class that owns SpelunkySignatures).
 	def _setup_hooks(self, sp):
 		self['current_game_ptr'] = ReadProcessMemory_ctype(sp.handle, self['game_container']+21, c.c_ulong).value
 		self['current_game_offset_uint'] = ReadProcessMemory_ctype(sp.handle, self['current_game_ptr'], c.c_ulong).value
@@ -306,10 +327,29 @@ class SpelunkySignatures(UserDict):
 		self['health_offset_uint'] = ReadProcessMemory_ctype(sp.handle, player_container+32, c.c_uint).value
 		self['bombs_offset_uint'] = ReadProcessMemory_ctype(sp.handle, player_container+39, c.c_uint).value
 		self['ropes_offset_uint'] = ReadProcessMemory_ctype(sp.handle, player_container+46, c.c_uint).value
-		
-		self['angry_shopkeeper_1_offset_char'] = self['health_offset_uint']-0x88
-		self['angry_shopkeeper_2_offset_char'] = self['health_offset_uint']-0xAB
-		
+		self['level_offset_uint'] = ReadProcessMemory_ctype(sp.handle, self['level_offset_container']+7, c.c_uint).value
+
+		self['lvl_dark_offset_char'] = ReadProcessMemory_ctype(sp.handle, self['lvl_dark']+2, c.c_uint).value
+		self['lvl_worm_offset_char'] = ReadProcessMemory_ctype(sp.handle, self['lvl_worm']+7, c.c_uint).value
+		self['lvl_black_market_offset_char'] = ReadProcessMemory_ctype(sp.handle, self['lvl_black_market']+4, c.c_uint).value
+		self['lvl_hmansion_offset_char'] = ReadProcessMemory_ctype(sp.handle, self['lvl_hmansion']+4, c.c_uint).value
+		self['lvl_yeti_offset_char'] = ReadProcessMemory_ctype(sp.handle, self['lvl_yeti']+4, c.c_uint).value
+		self['lvl_cog_offset_char'] = ReadProcessMemory_ctype(sp.handle, self['lvl_cog']+2, c.c_uint).value
+		self['lvl_mothership_offset_char'] = ReadProcessMemory_ctype(sp.handle, self['lvl_mothership']+7, c.c_uint).value
+
+		# the rest is what i'm calling 'original research'. i'm finding offsets of 
+		# interest from offsets calculated by the signature method because i don't quite know what i'm doing.
+		# ideally i'd be able to figure out how to get memory signatures for each of these myself,
+		# but i don't at present.
+
+		self['favour_offset_uint'] = self['ropes_offset_uint']+0x5288
+
+		self['is_dead_offset_char'] = int(ReadProcessMemory_ctype(sp.handle, self['level_offset_container']+7, c.c_uint).value)
+		self['is_dead_offset_char'] = self['is_dead_offset_char'] - 6
+		self['killed_by_offset_uint'] = self['is_dead_offset_char'] + 0x52
+
+		# lunkybox has the pointers/offsets from game.exe and i could have used them directly,
+		# but this ended up taking less work. 
 		self['has_compass_offset_char'] = self['ropes_offset_uint']+0x5C
 		self['has_parachute_offset_char'] = self['ropes_offset_uint']+0x5D
 		self['has_jetpack_offset_char'] = self['ropes_offset_uint']+0x5E
@@ -329,36 +369,25 @@ class SpelunkySignatures(UserDict):
 		self['has_crysknife_offset_char'] = self['ropes_offset_uint']+0x6C
 		self['has_vlads_amulet_offset_char'] = self['ropes_offset_uint']+0x6D
 
-		print('angry_shopkeeper_1_offset_char',hex(self['current_game_offset_uint']+self['angry_shopkeeper_1_offset_char']))
-		print('angry_shopkeeper_2_offset_char',hex(self['current_game_offset_uint']+self['angry_shopkeeper_2_offset_char']))
+		# both values seem to be 1 when he's mad on a stage. wanted to collect enough
+		# data to confirm angry_shopkeeper_1 is always the same as angry_shopkeeper_2
+		self['angry_shopkeeper_1_offset_char'] = self['health_offset_uint']-0x88
+		self['angry_shopkeeper_2_offset_char'] = self['health_offset_uint']-0xAB
 
-		# when you don't know how to figure out the memory/signature on your own, some
-		# flexibility is necessary.
-		self['favour_offset_uint'] = self['ropes_offset_uint']+0x5288
-
-		self['level_offset_uint'] = ReadProcessMemory_ctype(sp.handle, self['level_offset_container']+7, c.c_uint).value
-		self['is_dead_offset_char'] = int(ReadProcessMemory_ctype(sp.handle, self['level_offset_container']+7, c.c_uint).value)
-		self['is_dead_offset_char'] = self['is_dead_offset_char'] - 6
-		self['killed_by_offset_uint'] = self['is_dead_offset_char'] + 0x52
-
-		'''
-		print('player_container',hex(int(self['player_container']+self['current_game'])))
-		print('player_health',hex(int(self['current_game']+self['player_health_offset'])))
-		print('player_bombs',hex(int(self['current_game']+self['player_bombs_offset'])))
-		print('player_ropes',hex(int(self['current_game']+self['player_ropes_offset'])))
-		print('level',hex(int(self['current_game']+self['level_offset'])))
-		'''
-
-		#print()
-		#for location,value in sorted(list(self.items()),key=lambda x: x[1]):
-		#	print(hex(int(value)),location)
-		#print()
+		print()
+		for location,value in sorted(list(self.items()),key=lambda x: x[1]):
+			print(hex(int(value)),location)
+		print()
 
 class Spelunker:
 
 	def __init__(self):
 
 		self._set_pid()
+
+		# these are the OpenProcess flags Frozlunky uses.
+		# i kinda looked into them. seemed reasonable. i'm not sure if they'd work 
+		# if we were doing a dll injection.
 		self.spelunky_process = win32api.OpenProcess(win32con.PROCESS_CREATE_THREAD|
 								win32con.PROCESS_QUERY_INFORMATION|
 								win32con.PROCESS_SET_INFORMATION|
@@ -370,14 +399,20 @@ class Spelunker:
 								True,self.pid)
 		self.handle = self.spelunky_process.handle
 
+		# this doesn't work in 64 bit and i have no idea why. help!
 		self.spelunky_base = GetModuleBase(self.handle)
 
 		if not self.spelunky_process:
 			raise RuntimeError('Couldn\'t open the spelunky process.')
 
 		self.mem = SpelunkySignatures(self)
+
+		# this is set for convienence
 		self.current_game = self.mem['current_game_offset_uint']
 		
+		# goes through the memory dictionary looking for names matching
+		# *_offset_uint, *_offset_char and *_offset_short. seperates matching
+		# names into their respective lists. 
 		self.offset_uint = list(
 					filter(lambda z: len(z) > 0,
 					map(lambda y: y[:len(y) - len('_offset_uint')],
@@ -395,6 +430,10 @@ class Spelunker:
 					filter(lambda x: x.endswith('_offset_short'),
 					self.mem.keys()))))
 
+		# sets self.alt_attributes so that each name in self.offset_uint,
+		# self.offset_char and self.offset_short is a key. the value of each
+		# key is a partially applied function of self.read_uint, self.read_short
+		# or self.read_char.
 		self.alt_attributes = {}
 		for k in self.offset_uint:
 			self.alt_attributes[k] = partial(self.read_uint,name=k+'_offset_uint')
@@ -403,6 +442,12 @@ class Spelunker:
 		for k in self.offset_short:
 			self.alt_attributes[k] = partial(self.read_short,name=k+'_offset_short')
 
+	# for a Spelunker instance sp, this allows us to access the value of memories of interest
+	# via sp's attributes. it's easier shown by example:
+	# sp.health will call read_uint with name argument 'health_offset_uint', which will return 
+	# the health read from game.
+	# if the name of the memory defined in SpelunkySignatures matched one of the *_offset_*
+	# labels, the sp object will automatically have that name as an attribute.
 	def __getattr__(self,name):
 		try:
 			return self.alt_attributes[name]()
@@ -410,16 +455,20 @@ class Spelunker:
 			msg = "'{0}' object has no attribute '{1}'"
 			raise AttributeError(msg.format(type(self).__name__, name))
 
+	# read and return a uint from the specificed named memory location
 	def read_uint(self,name):
 		return ReadProcessMemory_ctype(self.handle,self.current_game+self.mem[name],c.c_uint).value
 
+	# read and return a short from the specificed named memory location
 	def read_short(self,name):
 		return ReadProcessMemory_ctype(self.handle,self.current_game+self.mem[name],c.c_short).value
 	
+	# read and return a byte from the specificed named memory location
 	def read_char(self,name):
 		ch = ReadProcessMemory_ctype(self.handle,self.current_game+self.mem[name],c.c_char).value
 		return int.from_bytes(ch,byteorder='little')
 	
+	# enumerate all processes to find spelunky.exe and set self.pid
 	def _set_pid(self):
 
 		WMI = GetObject('winmgmts:')
@@ -446,6 +495,13 @@ def main():
 		print('favour',sp.favour)
 		print('level',sp.level)
 		print('killed_by',sp.killed_by)
+		print('lvl_dark',sp.lvl_dark)
+		print('lvl_worm',sp.lvl_worm)
+		print('lvl_black_market',sp.lvl_black_market)
+		print('lvl_hmansion',sp.lvl_hmansion)
+		print('lvl_yeti',sp.lvl_yeti)
+		print('lvl_cog',sp.lvl_cog)
+		print('lvl_mothership',sp.lvl_mothership)
 		print('angry_shopkeeper_1',sp.angry_shopkeeper_1)
 		print('angry_shopkeeper_2',sp.angry_shopkeeper_2)
 		print('has_compass',sp.has_compass)
