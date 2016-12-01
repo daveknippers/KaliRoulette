@@ -8,6 +8,7 @@ from odds import oddsEngine
 from irc.client import ip_numstr_to_quad, ip_quad_to_numstr
 from threading import Thread
 
+
 class BetBot(irc.bot.SingleServerIRCBot):
 
 	def __init__(self, channel, nickname, server):
@@ -33,7 +34,11 @@ class BetBot(irc.bot.SingleServerIRCBot):
 			self.gameOver(self.sp.level, killedBy, self.sp.gold_count, self.sp.ropes,self.sp.bombs)
 		self.is_dead = death_state
 
+	def send_message(self, message, user):
+		self.connection.privmsg(str(self.channel),"/w "+user+ " "+ message)
 
+	def send_pub_message(self, message):
+		self.connection.privmsg(str(self.channel), message)
 
 	def on_nicknameinuse(self, c, e):
 		c.nick(c.get_nickname() + "_")
@@ -50,8 +55,8 @@ class BetBot(irc.bot.SingleServerIRCBot):
 
 	def on_pubmsg(self, c, e):
 	  a = e.arguments[0].split("!", 1) #splitsthe
-	  print(e)
-	  print(a)
+	  #print(e)
+	  #print(a)
 	  if (len(a) > 1):
 		  self.do_command(e, a[1].strip())
 	  return

@@ -59,7 +59,7 @@ def VirtualQueryEx(handle, addr):
 
 	return mbi if c.windll.kernel32.VirtualQueryEx(handle, addr, mbi_pointer, mbi_size) else None
 
-# read memory into an arbitrary sized char array 
+# read memory into an arbitrary sized char array
 def ReadProcessMemory_array(handle, addr, buffer_size):
 	data = c.create_string_buffer(buffer_size)
 
@@ -97,7 +97,7 @@ def GetModuleBase(handle):
 
 # takes a ctypes string buffer (as created by ReadProcessMemory_array).
 # the __contains__ definition allows one to check if a Signature
-# object (defined below) is 'in' it 
+# object (defined below) is 'in' it
 class Buffer:
 
 	def __init__(self, buf):
@@ -140,7 +140,7 @@ class Signature:
 		return self.base_addr + self.offset
 
 # UserDict allows dictionary assignment to self,
-# and allows instances of SpelunkySignatures to 
+# and allows instances of SpelunkySignatures to
 # behave as a dictionary.
 class SpelunkySignatures(UserDict):
 
@@ -207,9 +207,9 @@ class SpelunkySignatures(UserDict):
 		      [ 0x8B, 0xCC, 0xCC, 0x8D, 0xCC, 0xCC, 0x8D, 0xCC,
 			0xCC, 0xBF, 0xCC, 0xCC, 0xCC, 0xCC, 0xE8, 0xCC,
 			0xCC, 0xCC, 0xCC, 0x8B, 0xCC, 0xAA, 0xAA, 0xAA,
-			0xAA, 0x80], 
+			0xAA, 0x80],
 		      [ 0xCC, 0x01, 0x00, 0x00, 0x00, 0x01, 0xCC, 0xAA,
-			0xAA, 0xAA, 0xAA, 0x38, 0xCC, 0xCC, 0xCC, 0xCC, 
+			0xAA, 0xAA, 0xAA, 0x38, 0xCC, 0xCC, 0xCC, 0xCC,
 			0xCC, 0x74, 0xCC, 0x88],
 		      [ 0x89, 0xFF, 0xFF, 0xFF, 0x8D, 0xFF, 0xFF ,0x69,
 		        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x33, 0xFF, 0x8B,
@@ -219,7 +219,7 @@ class SpelunkySignatures(UserDict):
 			0xFF, 0xFF, 0x33, 0xFF, 0x39, 0xFF, 0x0F],
 		      [ 0x8b, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0x85, 0xaa,
 			0x74, 0xAA, 0x89, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xEB,
-			0xAA, 0x83], 
+			0xAA, 0x83],
 		      [ 0xBB, 0x0F, 0x00, 0x00, 0x00, 0x3B, 0xC3, 0x75,
 			0xFF, 0x8B, 0x7E, 0xFF, 0xC7, 0x46, 0xFF, 0x1B,
 			0x00, 0x00, 0x00, 0x89, 0x5E, 0xFF, 0xE8],
@@ -254,7 +254,7 @@ class SpelunkySignatures(UserDict):
 		self._scan_memory(sp, list(map(lambda x: Signature(*x),zip(names,masks,sigs))))
 		self._setup_hooks(sp)
 
-	# scans for valid memory with VirtualQueryEx, then takes every block of 
+	# scans for valid memory with VirtualQueryEx, then takes every block of
 	# valid memory and checks for each signature in 4096 sized chunks.
 	# stops when they've all been found.
 	def _scan_memory(self, sp, signatures):
@@ -337,7 +337,7 @@ class SpelunkySignatures(UserDict):
 		self['lvl_cog_offset_char'] = ReadProcessMemory_ctype(sp.handle, self['lvl_cog']+2, c.c_uint).value
 		self['lvl_mothership_offset_char'] = ReadProcessMemory_ctype(sp.handle, self['lvl_mothership']+7, c.c_uint).value
 
-		# the rest is what i'm calling 'original research'. i'm finding offsets of 
+		# the rest is what i'm calling 'original research'. i'm finding offsets of
 		# interest from offsets calculated by the signature method because i don't quite know what i'm doing.
 		# ideally i'd be able to figure out how to get memory signatures for each of these myself,
 		# but i don't at present.
@@ -349,7 +349,7 @@ class SpelunkySignatures(UserDict):
 		self['killed_by_offset_uint'] = self['is_dead_offset_char'] + 0x52
 
 		# lunkybox has the pointers/offsets from game.exe and i could have used them directly,
-		# but this ended up taking less work. 
+		# but this ended up taking less work.
 		self['has_compass_offset_char'] = self['ropes_offset_uint']+0x5C
 		self['has_parachute_offset_char'] = self['ropes_offset_uint']+0x5D
 		self['has_jetpack_offset_char'] = self['ropes_offset_uint']+0x5E
@@ -386,7 +386,7 @@ class Spelunker:
 		self._set_pid()
 
 		# these are the OpenProcess flags Frozlunky uses.
-		# i kinda looked into them. seemed reasonable. i'm not sure if they'd work 
+		# i kinda looked into them. seemed reasonable. i'm not sure if they'd work
 		# if we were doing a dll injection.
 		self.spelunky_process = win32api.OpenProcess(win32con.PROCESS_CREATE_THREAD|
 								win32con.PROCESS_QUERY_INFORMATION|
@@ -409,10 +409,10 @@ class Spelunker:
 
 		# this is set for convienence
 		self.current_game = self.mem['current_game_offset_uint']
-		
+
 		# goes through the memory dictionary looking for names matching
 		# *_offset_uint, *_offset_char and *_offset_short. seperates matching
-		# names into their respective lists. 
+		# names into their respective lists.
 		self.offset_uint = list(
 					filter(lambda z: len(z) > 0,
 					map(lambda y: y[:len(y) - len('_offset_uint')],
@@ -444,7 +444,7 @@ class Spelunker:
 
 	# for a Spelunker instance sp, this allows us to access the value of memories of interest
 	# via sp's attributes. it's easier shown by example:
-	# sp.health will call read_uint with name argument 'health_offset_uint', which will return 
+	# sp.health will call read_uint with name argument 'health_offset_uint', which will return
 	# the health read from game.
 	# if the name of the memory defined in SpelunkySignatures matched one of the *_offset_*
 	# labels, the sp object will automatically have that name as an attribute.
@@ -462,12 +462,12 @@ class Spelunker:
 	# read and return a short from the specificed named memory location
 	def read_short(self,name):
 		return ReadProcessMemory_ctype(self.handle,self.current_game+self.mem[name],c.c_short).value
-	
+
 	# read and return a byte from the specificed named memory location
 	def read_char(self,name):
 		ch = ReadProcessMemory_ctype(self.handle,self.current_game+self.mem[name],c.c_char).value
 		return int.from_bytes(ch,byteorder='little')
-	
+
 	# enumerate all processes to find spelunky.exe and set self.pid
 	def _set_pid(self):
 
@@ -483,7 +483,7 @@ class Spelunker:
 			raise RuntimeError('More than one active Spelunky process found.')
 		else:
 			self.pid = spelunky_candidates[0][0]
-			
+
 
 def main():
 	sp = Spelunker()

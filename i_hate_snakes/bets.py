@@ -72,11 +72,5 @@ class bettingEngine():
 				potWinning = i[3]
 				print(user)
 				self.users.bettingUserGold(user, potWinning)
-				"""
-			else:
-				print (str(condition1) + " AND " + str(condition2)+ " are not known or a sucide happend")
-				user = i[0]
-				self.users.postOutcomeUserGold(user)
-				"""
 			self.users.postOutcomeUserGold(i[0])
 		self.BetsArray = []
