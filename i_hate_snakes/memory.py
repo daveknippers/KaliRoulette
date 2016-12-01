@@ -29,6 +29,16 @@ class MEMORY_BASIC_INFORMATION64(c.Structure):
 			("Type", c.c_long),
 			("__alignment2", c.c_long)]
 
+class TimeInfo(c.Structure):
+
+	_fields_ = [ ("minutes",  c.c_uint),
+			("seconds", c.c_uint),
+			("milliseconds", c.c_double)]
+
+	def total_ms(self):
+		return self.milliseconds + self.seconds*1000 + self.minutes*60*1000
+	
+
 # this probably isn't kosher.
 IS_64BIT = sys.maxsize > 2**32
 if IS_64BIT:
@@ -69,6 +79,19 @@ def ReadProcessMemory_array(handle, addr, buffer_size):
 		count = c.c_ulong(0)
 
 	return data if c.windll.kernel32.ReadProcessMemory(handle, c.c_void_p(addr), data, buffer_size, c.byref(count)) else None
+
+# read memory into an TimeInfo struct 
+def ReadProcessMemory_TimeInfo(handle, addr):
+	time_info = TimeInfo()
+	time_info_pointer = c.byref(time_info)
+	time_info_size = c.sizeof(time_info)
+
+	if IS_64BIT:
+		count = c.c_ulonglong(0)
+	else:
+		count = c.c_ulong(0)
+
+	return time_info if c.windll.kernel32.ReadProcessMemory(handle, c.c_void_p(addr), time_info_pointer, time_info_size, c.byref(count)) else None
 
 # read memory into a specific c type
 def ReadProcessMemory_ctype(handle, addr, buffer_type):
@@ -148,7 +171,7 @@ class SpelunkySignatures(UserDict):
 		UserDict.__init__(self)
 
 		names = ['game_state',
-			 'timers',
+			 'timer',
 			 'gold_count_offset_ptr',
 			 'player_container',
 			 'pent_container',
@@ -314,7 +337,7 @@ class SpelunkySignatures(UserDict):
 		self['current_game_ptr'] = ReadProcessMemory_ctype(sp.handle, self['game_container']+21, c.c_ulong).value
 		self['current_game_offset_uint'] = ReadProcessMemory_ctype(sp.handle, self['current_game_ptr'], c.c_ulong).value
 
-		self['gold_count_offset_uint'] = ReadProcessMemory_ctype(sp.handle, self['gold_count_offset_ptr']+0x17,c.c_ulong).value
+		self['gold_count_offset_int'] = ReadProcessMemory_ctype(sp.handle, self['gold_count_offset_ptr']+0x17,c.c_ulong).value
 
 		player_container = self['player_container']
 
@@ -328,6 +351,10 @@ class SpelunkySignatures(UserDict):
 		self['bombs_offset_uint'] = ReadProcessMemory_ctype(sp.handle, player_container+39, c.c_uint).value
 		self['ropes_offset_uint'] = ReadProcessMemory_ctype(sp.handle, player_container+46, c.c_uint).value
 		self['level_offset_uint'] = ReadProcessMemory_ctype(sp.handle, self['level_offset_container']+7, c.c_uint).value
+		
+		self['game_timer_offset_TimeInfo'] = ReadProcessMemory_ctype(sp.handle, self['timer']+4, c.c_uint).value
+		self['game_timer_offset_TimeInfo'] = self['game_timer_offset_TimeInfo'] - 8
+		self['level_timer_offset_TimeInfo'] = self['game_timer_offset_TimeInfo'] + 16
 
 		self['lvl_dark_offset_char'] = ReadProcessMemory_ctype(sp.handle, self['lvl_dark']+2, c.c_uint).value
 		self['lvl_worm_offset_char'] = ReadProcessMemory_ctype(sp.handle, self['lvl_worm']+7, c.c_uint).value
@@ -342,7 +369,7 @@ class SpelunkySignatures(UserDict):
 		# ideally i'd be able to figure out how to get memory signatures for each of these myself,
 		# but i don't at present.
 
-		self['favour_offset_signed_uint'] = self['ropes_offset_uint']+0x5288
+		self['favour_offset_int'] = self['ropes_offset_uint']+0x5288
 
 		self['is_dead_offset_char'] = int(ReadProcessMemory_ctype(sp.handle, self['level_offset_container']+7, c.c_uint).value)
 		self['is_dead_offset_char'] = self['is_dead_offset_char'] - 6
@@ -411,7 +438,7 @@ class Spelunker:
 		self.current_game = self.mem['current_game_offset_uint']
 		
 		# goes through the memory dictionary looking for names matching
-		# *_offset_uint, *_offset_char and *_offset_short. seperates matching
+		# *_offset_uint, *_offset_int, *_offset_char and *_offset_short. seperates matching
 		# names into their respective lists. 
 		self.offset_uint = list(
 					filter(lambda z: len(z) > 0,
@@ -419,10 +446,10 @@ class Spelunker:
 					filter(lambda x: x.endswith('_offset_uint'),
 					self.mem.keys()))))
 					
-		self.offset_signed_uint = list(
+		self.offset_int = list(
 					filter(lambda z: len(z) > 0,
-					map(lambda y: y[:len(y) - len('_offset_signed_uint')],
-					filter(lambda x: x.endswith('_offset_signed_uint'),
+					map(lambda y: y[:len(y) - len('_offset_int')],
+					filter(lambda x: x.endswith('_offset_int'),
 					self.mem.keys()))))
 
 		self.offset_char = list(
@@ -443,8 +470,8 @@ class Spelunker:
 		self.alt_attributes = {}
 		for k in self.offset_uint:
 			self.alt_attributes[k] = partial(self.read_uint,name=k+'_offset_uint')
-		for k in self.offset_signed_uint:
-			self.alt_attributes[k] = partial(self.read_signed_uint,name=k+'_offset_signed_uint')
+		for k in self.offset_int:
+			self.alt_attributes[k] = partial(self.read_int,name=k+'_offset_int')
 		for k in self.offset_char:
 			self.alt_attributes[k] = partial(self.read_char,name=k+'_offset_char')
 		for k in self.offset_short:
@@ -468,9 +495,8 @@ class Spelunker:
 		return ReadProcessMemory_ctype(self.handle,self.current_game+self.mem[name],c.c_uint).value
 		
 	# read and return a uint from the specificed named memory location, and convert to its signed representation
-	def read_signed_uint(self,name):
-		block = ReadProcessMemory_ctype(self.handle,self.current_game+self.mem[name],c.c_uint).value
-		return struct.unpack('l', struct.pack('L',block & 0xffffffff))[0]
+	def read_int(self,name):
+		return ReadProcessMemory_ctype(self.handle,self.current_game+self.mem[name],c.c_int).value
 			
 	# read and return a short from the specificed named memory location
 	def read_short(self,name):
@@ -481,6 +507,18 @@ class Spelunker:
 		ch = ReadProcessMemory_ctype(self.handle,self.current_game+self.mem[name],c.c_char).value
 		return int.from_bytes(ch,byteorder='little')
 	
+	# read a TimeInfo struct from game addr + timer_offset_TimeInfo
+	@property
+	def game_timer(self):
+		t = ReadProcessMemory_TimeInfo(self.handle,self.current_game+self.mem['game_timer_offset_TimeInfo'])
+		return t.total_ms()
+
+	# read a TimeInfo struct from game addr + timer_offset_TimeInfo
+	@property
+	def level_timer(self):
+		t = ReadProcessMemory_TimeInfo(self.handle,self.current_game+self.mem['level_timer_offset_TimeInfo'])
+		return t.total_ms()
+
 	# enumerate all processes to find spelunky.exe and set self.pid
 	def _set_pid(self):
 

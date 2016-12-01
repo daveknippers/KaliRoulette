@@ -53,8 +53,8 @@ def death_collector(db_file='death_collection.db'):
 	run_columns = ['start_time']
 	run_columns.extend(ALL_ATTRIBUTES)
 
-		
 	last_level = 0
+	shopkeeper_angry = 0
 
 	# it should never be read before it gets set in the while below,
 	# but in case it is because i missed a race condition or something,
@@ -63,18 +63,21 @@ def death_collector(db_file='death_collection.db'):
 
 	current_run = []
 	informed = False
+
 	while not sp.is_dead:
 		if not informed:
 			print('Waiting until you\'re dead to start data collection.\n')
 			informed = True
 		time.sleep(1)
 
-	print('Game over state detected. Death collection will begin next life.')
+	print('Game over state detected. Death collection will begin next life.\n')
 
 	try:
 		while True:
 			current_level = sp.level
 			dead = sp.is_dead
+			timer = sp.level_timer
+			angry_keeper = sp.angry_shopkeeper_1 or sp.angry_shopkeeper_2
 			if dead and last_level:
 				# first time death notification
 				state = [start_time]
@@ -91,22 +94,26 @@ def death_collector(db_file='death_collection.db'):
 			elif not dead and not last_level and current_level > 0:
 				# just started a new game
 				start_time = int(time.time())
+				shopkeeper_angry = False
 				if current_level % 4: # deal with shortcuts
 					state = [start_time]
 					state.extend(list(map(lambda attr: getattr(sp,attr),ALL_ATTRIBUTES)))
 					current_run.append(state)
 				last_level = current_level
 				print('New game started')
-			elif not dead and current_level > last_level:
+			elif not dead and current_level > last_level and timer > 0:
 				# just got to a new level
 				last_level = current_level
 				state = [start_time]
 				state.extend(list(map(lambda attr: getattr(sp,attr),ALL_ATTRIBUTES)))
 				current_run.append(state)
 				print('Finished level / starting from shortcut')
-			
-			if sp.lvl_dark:
-				print('dark lvl')
+			if not shopkeeper_angry and angry_keeper:
+				shopkeeper_angry = True
+				state = [start_time]
+				state.extend(list(map(lambda attr: getattr(sp,attr),ALL_ATTRIBUTES)))
+				current_run.append(state)
+				print('Shopkeeper is kinda pissed...')
 			
 			time.sleep(1)
 	except ValueError:
