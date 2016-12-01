@@ -80,7 +80,7 @@ class BetBot(irc.bot.SingleServerIRCBot):
 			elif (len(cmd)== 4):
 				condition1 = str(cmd[2])
 				condition2 = str(cmd[3])
-				if condition1 == condtion2:
+				if condition1 == condition2:
 					condtion2 = None
 				try:
 					bet = int(cmd[1])
