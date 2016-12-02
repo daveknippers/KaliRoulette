@@ -54,7 +54,7 @@ def death_collector(db_file='death_collection.db'):
 	run_columns.extend(ALL_ATTRIBUTES)
 
 	last_level = 0
-	shopkeeper_angry = 0
+	angry_keeper_trigger = False
 
 	# it should never be read before it gets set in the while below,
 	# but in case it is because i missed a race condition or something,
@@ -94,7 +94,7 @@ def death_collector(db_file='death_collection.db'):
 			elif not dead and not last_level and current_level > 0:
 				# just started a new game
 				start_time = int(time.time())
-				shopkeeper_angry = False
+				angry_keeper_trigger = False
 				if current_level % 4: # deal with shortcuts
 					state = [start_time]
 					state.extend(list(map(lambda attr: getattr(sp,attr),ALL_ATTRIBUTES)))
@@ -108,8 +108,8 @@ def death_collector(db_file='death_collection.db'):
 				state.extend(list(map(lambda attr: getattr(sp,attr),ALL_ATTRIBUTES)))
 				current_run.append(state)
 				print('Finished level / starting from shortcut')
-			if not shopkeeper_angry and angry_keeper:
-				shopkeeper_angry = True
+			if not dead and not angry_keeper_trigger and angry_keeper:
+				angry_keeper_trigger = True
 				state = [start_time]
 				state.extend(list(map(lambda attr: getattr(sp,attr),ALL_ATTRIBUTES)))
 				current_run.append(state)
