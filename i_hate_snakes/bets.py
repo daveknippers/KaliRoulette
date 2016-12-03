@@ -57,20 +57,38 @@ class bettingEngine():
 			i+=1
 		return succsess
 
-	def tallyWinnings(self, condition1, condition2, gold=None, ropes=None, bombs=None):
+	def tallyWinnings(self, condition1, condition2, special_level, gold=None, ropes=None, bombs=None):
 		for i in self.BetsArray:
 			first = str(i[4])
 			second = str(i[5])
-			if(i[5] !=None):
-				if((first == str(condition1) and second == str(condition2)) or (first == str(condition2) and second == str(condition1))):
+			if special_level !=None:
+				if(i[5] !=None):
+					if ((first == str(special_level) and second == str(condition2)) or (first == str(condition1) and second == str(special_level)) or (first == str(special_level) and second == str(condition1)) or (first == str(condition2) and second == str(special_level))):
+						user = i[0]
+						potWinning = i[3]
+						print(user,'bigmoney',potWinning)
+						self.users.bettingUserGold(user, potWinning)
+					elif((first == str(condition1) and second == str(condition2)) or (first == str(condition2) and second == str(condition1))):
+						user = i[0]
+						potWinning = i[3]
+						print(user,'bigmoney',potWinning)
+						self.users.bettingUserGold(user, potWinning)
+				elif(first == str(condition1) or first == str(condition2) or first == str(special_level)):
 					user = i[0]
 					potWinning = i[3]
-					print(user,'bigmoney')
+					print(user,potWinning)
 					self.users.bettingUserGold(user, potWinning)
-			elif(first == str(condition1) or first == str(condition2)):
-				user = i[0]
-				potWinning = i[3]
-				print(user)
-				self.users.bettingUserGold(user, potWinning)
+			else:
+				if(i[5] !=None):
+					if((first == str(condition1) and second == str(condition2)) or (first == str(condition2) and second == str(condition1))):
+						user = i[0]
+						potWinning = i[3]
+						print(user,'bigmoney',potWinning)
+						self.users.bettingUserGold(user, potWinning)
+				elif(first == str(condition1) or first == str(condition2)):
+					user = i[0]
+					potWinning = i[3]
+					print(user,potWinning)
+					self.users.bettingUserGold(user, potWinning)
 			self.users.postOutcomeUserGold(i[0])
 		self.BetsArray = []

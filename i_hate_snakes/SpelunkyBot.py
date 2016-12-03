@@ -19,6 +19,7 @@ class BetBot(irc.bot.SingleServerIRCBot):
 		self.user = people.users()
 		self.sp = Spelunker()
 		self.is_dead = self.sp.is_dead
+		self.past_level = self.sp.level
 		self.deathDict={}
 		with open('death_list.csv') as csvfile:
 			rawData = csv.reader(csvfile, delimiter = ',')
@@ -30,25 +31,75 @@ class BetBot(irc.bot.SingleServerIRCBot):
 
 	def process_spelunker(self):
 		death_state = int(self.sp.is_dead)
+		current_level = int(self.sp.level)
+		if self.past_level != current_level:
+			#trigger level change stuff
+			item_dict = self.get_item_list()
+			print(current_level)
+			self.theOdds.levelChangeOdds(self.sp.level,self.sp.health,item_dict, self.sp.ropes,self.sp.bombs)
+			if current_level == 1:
+				self.theOdds = oddsEngine()
+		self.past_level = current_level
 		if not self.is_dead and death_state:
+			#trigger player death stuff
 			killedBy = self.deathDict[str(self.sp.killed_by)]
-			holdOff =Timer(13,self.gameOver,args=(self.sp.level, killedBy, self.sp.gold_count, self.sp.ropes,self.sp.bombs))
+			special_level_outcome = self.special_level()
+			holdOff =Timer(7,self.gameOver,args=(self.sp.level, killedBy, special_level_outcome, self.sp.gold_count, self.sp.ropes,self.sp.bombs))
+			pubMess = Timer(10,self.theLock.release)
 			holdOff.run()
+			pubMess.run()
 		self.is_dead = death_state
+
+	def get_item_list(self):
+		itemList = {}
+		itemList['jetpack'] = self.sp.has_jetpack
+		itemList['compass'] = self.sp.has_compass
+		itemList['parachute'] = self.sp.has_parachute
+		itemList['climbing_gloves'] = self.sp.has_climbing_gloves
+		itemList['pitchers_mitt'] = self.sp.has_pitchers_mitt
+		itemList['spring_shoes'] = self.sp.has_spring_shoes
+		itemList['spike_shoes'] = self.sp.has_spike_shoes
+		itemList['spectacles'] = self.sp.has_spectacles
+		itemList['kapala'] = self.sp.has_kapala
+		itemList['hedjet'] = self.sp.has_hedjet
+		itemList['udjat_eye'] = self.sp.has_udjat_eye
+		itemList['book_of_dead'] = self.sp.has_book_of_dead
+		itemList['ankh'] = self.sp.has_ankh
+		itemList['paste'] = self.sp.has_paste
+		itemList['cape'] = self.sp.has_cape
+		itemList['vlads_cape'] = self.sp.has_vlads_cape
+		itemList['crysknife'] = self.sp.has_crysknife
+		itemList['vlads_amulet'] = self.sp.has_vlads_amulet
+		return itemList
+
+	def special_level(self):
+		levelList= {}
+		levelList['lvl_dark'] =self.sp.lvl_dark
+		levelList['lvl_worm'] =self.sp.lvl_worm
+		levelList['lvl_black_market'] =self.sp.lvl_black_market
+		levelList['lvl_hmansion'] =self.sp.lvl_hmansion
+		levelList['lvl_yeti'] =self.sp.lvl_yeti
+		levelList['lvl_cog'] =self.sp.lvl_cog
+		levelList['lvl_mothership'] =self.sp.lvl_mothership
+		for key in levelList:
+			if levelList[key]:
+				return key
+		return None
 
 	def send_message(self, message, user):
 		self.connection.privmsg(str(self.channel),"/w "+user+ " "+ message)
 
 	def send_pub_message(self, message):
+		self.theLock.acquire()
 		self.connection.privmsg(str(self.channel), message)
 
 
 	def on_nicknameinuse(self, c, e):
 		c.nick(c.get_nickname() + "_")
 
-	def gameOver(self,condtion1, condition2, gold=None, ropes =None, bombs=None):
-		self.theBetter.tallyWinnings(condtion1, condition2, gold, ropes, bombs)
-		self.connection.privmsg(str(self.channel),"Bets calculated. Died on level "+str(condtion1) + " and "+ str(condition2) + " was the killer.")
+	def gameOver(self,condtion1, condition2,special_level, gold=None, ropes =None, bombs=None):
+		self.theBetter.tallyWinnings(condtion1, condition2,special_level, gold, ropes, bombs)
+		self.send_pub_message("Bets calculated. Died on level "+str(condtion1) + " and "+ str(condition2) + " was the killer.")
 
 	def on_welcome(self, c, e):
 		print('joining {0}'.format(self.channel))
