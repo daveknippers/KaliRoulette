@@ -6,7 +6,7 @@ import people, csv
 from bets import bettingEngine
 from odds import oddsEngine
 from irc.client import ip_numstr_to_quad, ip_quad_to_numstr
-from threading import Thread
+from threading import Thread, Lock, Timer
 
 
 class BetBot(irc.bot.SingleServerIRCBot):
@@ -25,13 +25,15 @@ class BetBot(irc.bot.SingleServerIRCBot):
 			for row in rawData:
 				self.deathDict[row[1]]=row[0]
 		self.reactor.execute_every(5,self.process_spelunker)
+		self.theLock = Lock()
 		self.start()
 
 	def process_spelunker(self):
 		death_state = int(self.sp.is_dead)
 		if not self.is_dead and death_state:
 			killedBy = self.deathDict[str(self.sp.killed_by)]
-			self.gameOver(self.sp.level, killedBy, self.sp.gold_count, self.sp.ropes,self.sp.bombs)
+			holdOff =Timer(13,self.gameOver,args=(self.sp.level, killedBy, self.sp.gold_count, self.sp.ropes,self.sp.bombs))
+			holdOff.run()
 		self.is_dead = death_state
 
 	def send_message(self, message, user):
@@ -39,6 +41,7 @@ class BetBot(irc.bot.SingleServerIRCBot):
 
 	def send_pub_message(self, message):
 		self.connection.privmsg(str(self.channel), message)
+
 
 	def on_nicknameinuse(self, c, e):
 		c.nick(c.get_nickname() + "_")
