@@ -35,6 +35,6 @@ class oddsEngine():
 	def changeOdds(self, condition, newOdds):
 		self.oddsData[condition] = newOdds
 
-	def levelChangeOdds(self, level, hearts, items, rope, bombs):
+	def levelChangeOdds(self, level, hearts, items, rope, bombs,special_level):
 		#do stuff
 		return

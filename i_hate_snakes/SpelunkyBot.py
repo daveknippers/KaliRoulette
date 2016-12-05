@@ -36,7 +36,7 @@ class BetBot(irc.bot.SingleServerIRCBot):
 			#trigger level change stuff
 			item_dict = self.get_item_list()
 			print(current_level)
-			self.theOdds.levelChangeOdds(self.sp.level,self.sp.health,item_dict, self.sp.ropes,self.sp.bombs)
+			self.theOdds.levelChangeOdds(self.sp.level,self.sp.health,item_dict, self.sp.ropes,self.sp.bombs,self.special_level)
 			if current_level == 1:
 				self.theOdds = oddsEngine()
 		self.past_level = current_level
