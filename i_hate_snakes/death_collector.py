@@ -45,21 +45,23 @@ ALL_ATTRIBUTES = ['level',
 			'has_crysknife',
 			'has_vlads_amulet']
 
-def death_collector(db_file='death_collection.db'):
+def death_collector(db_file='death_collection_2016_12_04.db'):
 	
 	sp = Spelunker()
 	
 	sql_engine = sqlite3.connect(db_file)
-	run_columns = ['start_time']
+	run_columns = ['start_time','seq']
 	run_columns.extend(ALL_ATTRIBUTES)
 
 	last_level = 0
 	angry_keeper_trigger = False
+	mothership_trigger = False
 
 	# it should never be read before it gets set in the while below,
 	# but in case it is because i missed a race condition or something,
 	# we're going to set it to be sure.
-	start_time = int(time.time()) 
+	start_time = int(time.time())
+
 
 	current_run = []
 	informed = False
@@ -71,17 +73,25 @@ def death_collector(db_file='death_collection.db'):
 		time.sleep(1)
 
 	print('Game over state detected. Death collection will begin next life.\n')
+	
+	timer = sp.level_timer
+	
 
 	try:
 		while True:
 			current_level = sp.level
 			dead = sp.is_dead
+			last_timer = timer
 			timer = sp.level_timer
+
+			in_mothership = sp.lvl_mothership
 			angry_keeper = sp.angry_shopkeeper_1 or sp.angry_shopkeeper_2
+						
 			if dead and last_level:
 				# first time death notification
-				state = [start_time]
+				state = [start_time,seq]
 				state.extend(list(map(lambda attr: getattr(sp,attr),ALL_ATTRIBUTES)))
+				seq += 1
 				current_run.append(state)
 				dc_df = pd.DataFrame(current_run,columns=run_columns)
 				dc_df.to_sql('run_states',sql_engine,if_exists='append',index=False)
@@ -95,26 +105,52 @@ def death_collector(db_file='death_collection.db'):
 				# just started a new game
 				start_time = int(time.time())
 				angry_keeper_trigger = False
+				mothership_trigger = False
+				seq = 1
 				if current_level % 4: # deal with shortcuts
-					state = [start_time]
+					state = [start_time,seq]
 					state.extend(list(map(lambda attr: getattr(sp,attr),ALL_ATTRIBUTES)))
+					seq += 1
 					current_run.append(state)
 				last_level = current_level
 				print('New game started')
+				
 			elif not dead and current_level > last_level and timer > 0:
 				# just got to a new level
 				last_level = current_level
-				state = [start_time]
+				state = [start_time,seq]
 				state.extend(list(map(lambda attr: getattr(sp,attr),ALL_ATTRIBUTES)))
+				seq += 1
 				current_run.append(state)
-				print('Finished level / starting from shortcut')
+				print('Finished level.')
+				
+			elif not dead and in_mothership and current_level == 11 and not mothership_trigger:
+				# entered the mothership, special level processing
+				mothership_trigger = True
+				state = [start_time,seq]
+				state.extend(list(map(lambda attr: getattr(sp,attr),ALL_ATTRIBUTES)))
+				seq += 1
+				current_run.append(state)
+				print('Entered the mothership, repeating 3-3.')
+				
+			elif not dead and not in_mothership and current_level == 12 and mothership_trigger:
+				# finished the mothership, special level processing
+				mothership_trigger = False
+				state = [start_time,seq]
+				state.extend(list(map(lambda attr: getattr(sp,attr),ALL_ATTRIBUTES)))
+				seq += 1
+				current_run.append(state)
+				print('Exited the mothership, repeating 3-4')
+				
 			if not dead and not angry_keeper_trigger and angry_keeper:
 				angry_keeper_trigger = True
-				state = [start_time]
+				state = [start_time,seq]
 				state.extend(list(map(lambda attr: getattr(sp,attr),ALL_ATTRIBUTES)))
+				seq += 1
 				current_run.append(state)
 				print('Shopkeeper is kinda pissed...')
-			
+				
+		
 			time.sleep(1)
 	except ValueError:
 		print('\nSpelunky data collection stopped.\n')
