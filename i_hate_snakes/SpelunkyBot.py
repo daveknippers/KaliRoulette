@@ -39,6 +39,13 @@ class BetBot(irc.bot.SingleServerIRCBot):
 			self.theOdds.levelChangeOdds(self.sp.level,self.sp.health,item_dict, self.sp.ropes,self.sp.bombs,self.special_level)
 			if current_level == 1:
 				self.theOdds = oddsEngine()
+				self.theBetter = bettingEngine(self.theOdds)
+			special = self.special_level()
+			print (str(special))
+			if special == None:
+				special = 'nope'
+			self.connection.privmsg(str(self.channel),"Level "+str(self.sp.level)+" "+str(self.sp.health)+ ' is the current heath left. Special level = ' + str(special))
+			self.theLock.release
 		self.past_level = current_level
 		if not self.is_dead and death_state:
 			#trigger player death stuff
