@@ -1,29 +1,30 @@
-snake,1001,confirmed - contact damage,
-cobra,1036,"confirmed - spit damage, also contact damage",
-bat,1003,confirmed,
-spider,1002,confirmed,
-spinner_spider,1037,confirmed,
-giant_spider,1018,confirmed,
-skeleton,1012,confirmed,
-scorpion,1029,confirmed,
-shopkeeper,1006,confirmed - was smacked to death,confirmed 'beaten up'
-shopkeeper,1215,confirmed - shot,
+snake,1001,,confirmed - contact damage
+cobra,1036,,"confirmed - spit damage, also contact damage"
+bat,1003,,confirmed
+spider,1002,,confirmed
+spinner_spider,1037,,confirmed
+giant_spider,1018,,confirmed
+skeleton,1012,,confirmed
+scorpion,1029,,confirmed
+caveman,?,,
+shopkeeper,1006,,confirmed - was smacked to death
+shopkeeper,1215,,confirmed - shot
 hired_help, ?,,
-tiki_man,1041,"confirmed - boomerang, 'beaten up'",
-blue_frog,1007,confirmed,
-orange_frog,1021,"confirmed - explosion killed me, says 'I got squished by a frog', ran into one, said same thing.",
-big_frog,1038,confirmed,
-mantrap,1008,confirmed,
-pihrana,1013,confirmed,
+tiki_man,1041,,"confirmed - boomerang, 'beaten up'"
+blue_frog,1007,,confirmed
+orange_frog,1021,,"confirmed - explosion killed me, says 'I got squished by a frog', ran into one, said same thing."
+big_frog,1038,,confirmed
+mantrap,1008,,confirmed
+pihrana,1013,,confirmed
 old_bitey,1023,,
 bee,1032,,
-queen_bee,1034,confirmed,
+queen_bee,1034,,confirmed
 snail,1043,,
-jiang_shi,1019,confirmed,
+jiang_shi,1019,,confirmed
 knight,1045,,
 black_knight,1049,,
 vampire,1010,,
-ghost,1017,confirmed,
+ghost,1017,,confirmed
 bacterium,1035,,
 worm_egg,1046,,
 worm_baby,1047,,
@@ -33,14 +34,14 @@ mammoth,1039,,
 alien,1026,,
 ufo,1010,,
 alien_tank,1040,,
-alien_lord,1016,confirmed - brain fried,
+alien_queen,,,
+alien_lord,1016,,confirmed - brain fried
 hawk_man,1048,,
-bird_man,1011,,
 croc_man,1044,,
 magma_man,??,,
 scorpion_fly,1042,,
 mummy,1014,,
-anubis_1,1033,"confirmed, died to purple spinning laser",
+anubis_1,1033,,"confirmed, died to purple spinning laser"
 anubis_2,234,,
 olmec,1055,,
 vlad,1028,,
@@ -50,11 +51,11 @@ succubus,1051,,
 horsehead,1052,,
 oxface,1053,,
 yama,1056,,
-spike,1100,confirmed,
-arrow_trap,1101,confirmed,
-powder_box,1102,confirmed,
+spike,1100,,confirmed
+arrow_trap,1101,,confirmed
+powder_box,1102,,confirmed
 boulder,1103,,
-tiki_trap,1104,confirmed,
+tiki_trap,1104,,confirmed
 acid,1105,,
 worm_block,182,,
 mine,1107,,
@@ -65,17 +66,16 @@ force_field,198,,
 crush_trap,???,,
 ceiling_trap,????,,
 spike_ball,178,,
-lava,1112,confirmed,
+lava,1112,,confirmed
 fall_damage,1201,,
 pushable_block,121,,
 item_contact,1200,,
 self_sacrifice,1214,,
 bomb,1202,,
-teleporter,1206,crushed - I've been ground into a fine place' after teleporter usage,need to make sure getting crushed by a rock or boulder doesn't give same number
-,1206,crushed - I've been ground into a fine place' after teleporter usage,
-abyss,1208,confirmed,
+teleporter,1206,,crushed - I've been ground into a fine place' after teleporter usage
+abyss,1208,,confirmed
 plasma_cannon,???????,,
 moving_platform (from alien level),?????????,,
-sceptre,1216,brain friend after firing it at myself,
+sceptre,1216,,brain fried after firing it at myself
 notReallyDead,0,,
-99999,reflection of bullet from force field,,
+bullet_reflection,99999,,

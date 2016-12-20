@@ -5,6 +5,7 @@ import pandas as pd
 
 import time
 import sqlite3
+import cmd
 
 pd.set_option('display.max_columns', None)
 
@@ -43,9 +44,17 @@ ALL_ATTRIBUTES = ['level',
 			'has_cape',
 			'has_vlads_cape',
 			'has_crysknife',
-			'has_vlads_amulet']
+			'has_vlads_amulet',
+			'game_timer']
+			
+			
+def produce_state(start_time, seq, sp):
+	state = [start_time,seq]
+	state.extend(list(map(lambda attr: getattr(sp,attr),ALL_ATTRIBUTES)))
+	return state,seq+1
+	
 
-def death_collector(db_file='death_collection_2016_12_04.db'):
+def Ankhterpreter(db_file='Ankhterpreter_2016_12_18.db'):
 	
 	sp = Spelunker()
 	
@@ -89,9 +98,8 @@ def death_collector(db_file='death_collection_2016_12_04.db'):
 						
 			if dead and last_level:
 				# first time death notification
-				state = [start_time,seq]
-				state.extend(list(map(lambda attr: getattr(sp,attr),ALL_ATTRIBUTES)))
-				seq += 1
+				time.sleep(1) # anti-race
+				state,seq = produce_state(start_time,seq,sp)
 				current_run.append(state)
 				dc_df = pd.DataFrame(current_run,columns=run_columns)
 				dc_df.to_sql('run_states',sql_engine,if_exists='append',index=False)
@@ -108,9 +116,7 @@ def death_collector(db_file='death_collection_2016_12_04.db'):
 				mothership_trigger = False
 				seq = 1
 				if current_level % 4: # deal with shortcuts
-					state = [start_time,seq]
-					state.extend(list(map(lambda attr: getattr(sp,attr),ALL_ATTRIBUTES)))
-					seq += 1
+					state,seq = produce_state(start_time,seq,sp)
 					current_run.append(state)
 				last_level = current_level
 				print('New game started')
@@ -118,35 +124,27 @@ def death_collector(db_file='death_collection_2016_12_04.db'):
 			elif not dead and current_level > last_level and timer > 0:
 				# just got to a new level
 				last_level = current_level
-				state = [start_time,seq]
-				state.extend(list(map(lambda attr: getattr(sp,attr),ALL_ATTRIBUTES)))
-				seq += 1
+				state,seq = produce_state(start_time,seq,sp)
 				current_run.append(state)
 				print('Finished level.')
 				
 			elif not dead and in_mothership and current_level == 11 and not mothership_trigger:
 				# entered the mothership, special level processing
 				mothership_trigger = True
-				state = [start_time,seq]
-				state.extend(list(map(lambda attr: getattr(sp,attr),ALL_ATTRIBUTES)))
-				seq += 1
+				state,seq = produce_state(start_time,seq,sp)
 				current_run.append(state)
 				print('Entered the mothership, repeating 3-3.')
 				
 			elif not dead and not in_mothership and current_level == 12 and mothership_trigger:
 				# finished the mothership, special level processing
 				mothership_trigger = False
-				state = [start_time,seq]
-				state.extend(list(map(lambda attr: getattr(sp,attr),ALL_ATTRIBUTES)))
-				seq += 1
+				state,seq = produce_state(start_time,seq,sp)
 				current_run.append(state)
 				print('Exited the mothership, repeating 3-4')
 				
 			if not dead and not angry_keeper_trigger and angry_keeper:
 				angry_keeper_trigger = True
-				state = [start_time,seq]
-				state.extend(list(map(lambda attr: getattr(sp,attr),ALL_ATTRIBUTES)))
-				seq += 1
+				state,seq = produce_state(start_time,seq,sp)
 				current_run.append(state)
 				print('Shopkeeper is kinda pissed...')
 				
@@ -160,5 +158,5 @@ def death_collector(db_file='death_collection_2016_12_04.db'):
 	
 
 if __name__ == "__main__":
-	death_collector()
+	Ankhterpreter()
 
