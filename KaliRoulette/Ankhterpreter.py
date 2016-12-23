@@ -54,7 +54,7 @@ def produce_state(start_time, seq, sp):
 	return state,seq+1
 	
 
-def Ankhterpreter(db_file='Ankhterpreter_2016_12_18.db'):
+def Ankhterpreter(db_file='Ankhterpreter_2016_12_22.db'):
 	
 	sp = Spelunker()
 	
