@@ -3,8 +3,11 @@
 import pandas as pd
 import sqlite3
 
+pd.set_option('display.max_columns', None)
+
 ALL_ATTRIBUTES = [	'start_time',
 			'seq',
+			'player',
 			'level',
 			'is_dead',
 			'killed_by',
@@ -13,8 +16,7 @@ ALL_ATTRIBUTES = [	'start_time',
 			'ropes',
 			'gold_count',
 			'favour',
-			'angry_shopkeeper_1',
-			'angry_shopkeeper_2',
+			'angry_shopkeeper',
 			'lvl_dark',
 			'lvl_worm',
 			'lvl_black_market',
@@ -40,8 +42,7 @@ ALL_ATTRIBUTES = [	'start_time',
 			'has_vlads_cape',
 			'has_crysknife',
 			'has_vlads_amulet',
-			'game_timer',
-			'player']
+			'game_timer']
 
 def merge_old_data():
 	
@@ -95,6 +96,46 @@ def merge_old_data():
 	sql_engine_3.close()
 	sql_engine_4.close()
 	sql_engine_5.close()
+	
+def merge_old_data_2():
+	f0 = 'KaliRoulette.db'
+	f1 = 'KaliRoulette_1.db'
+	f2 = 'KaliRoulette_2.db'
+	f3 = 'KaliRoulette_final.db'
+	
+	query = 'SELECT * FROM RUN_STATES'
+	
+	sql_engine_0 = sqlite3.connect(f0)
+	sql_engine_1 = sqlite3.connect(f1)
+	sql_engine_2 = sqlite3.connect(f2)
+	
+	sql_engine_3 = sqlite3.connect(f3)
+	
+	stats_0 = pd.read_sql(query,sql_engine_0).sort_values(['start_time','seq'])
+	stats_1 = pd.read_sql(query,sql_engine_1).sort_values(['start_time','seq'])
+	stats_2 = pd.read_sql(query,sql_engine_2).sort_values(['start_time','seq'])
+	
+	combined_df = pd.concat([stats_0,stats_1,stats_2])
+	
+	#print(combined_df.head())
+	combined_df['angry_shopkeeper'] = combined_df.apply(lambda x: x['angry_shopkeeper_1'] or x['angry_shopkeeper_2'],axis=1)
+	del combined_df['angry_shopkeeper_1']
+	del combined_df['angry_shopkeeper_2']
+	
+	combined_df = combined_df[ALL_ATTRIBUTES]
+	combined_df.sort_values(by=['start_time','seq'])
+	
+	combined_df.to_sql('run_states',sql_engine_3,if_exists='fail',index=False)
+	
+	sql_engine_0.close()
+	sql_engine_1.close()
+	sql_engine_2.close()
+	sql_engine_3.close()
+	
 
+	
+	
+	
+	
 if __name__ == '__main__':
-	merge_old_data()
+	merge_old_data_2()

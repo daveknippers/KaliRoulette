@@ -80,19 +80,6 @@ def ReadProcessMemory_array(handle, addr, buffer_size):
 
 	return data if c.windll.kernel32.ReadProcessMemory(handle, c.c_void_p(addr), data, buffer_size, c.byref(count)) else None
 
-# read memory into an TimeInfo struct 
-def ReadProcessMemory_TimeInfo(handle, addr):
-	time_info = TimeInfo()
-	time_info_pointer = c.byref(time_info)
-	time_info_size = c.sizeof(time_info)
-
-	if IS_64BIT:
-		count = c.c_ulonglong(0)
-	else:
-		count = c.c_ulong(0)
-
-	return time_info if c.windll.kernel32.ReadProcessMemory(handle, c.c_void_p(addr), time_info_pointer, time_info_size, c.byref(count)) else None
-
 # read memory into a specific c type
 def ReadProcessMemory_ctype(handle, addr, buffer_type):
 	data = buffer_type()
@@ -241,8 +228,8 @@ class SpelunkySignatures(UserDict):
 			0xFF, 0xFF, 0xFF, 0x8D, 0xFF, 0xFF, 0xFF, 0xFF,
 			0xFF, 0xFF, 0x33, 0xFF, 0x39, 0xFF, 0x0F],
 		      [ 0x8b, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0x85, 0xaa,
-			0x74, 0xAA, 0x89, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xEB,
-			0xAA, 0x83], 
+			0x74, 0xAA, 0x89, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA,
+			0xEB, 0xAA, 0x83], 
 		      [ 0xBB, 0x0F, 0x00, 0x00, 0x00, 0x3B, 0xC3, 0x75,
 			0xFF, 0x8B, 0x7E, 0xFF, 0xC7, 0x46, 0xFF, 0x1B,
 			0x00, 0x00, 0x00, 0x89, 0x5E, 0xFF, 0xE8],
@@ -408,7 +395,45 @@ class SpelunkySignatures(UserDict):
 
 class Spelunker:
 
+	ALL_ATTRIBUTES = ['level',
+			'is_dead',
+			'killed_by',
+			'health',
+			'bombs',
+			'ropes',
+			'gold_count',
+			'favour',
+			'angry_shopkeeper',
+			'lvl_dark',
+			'lvl_worm',
+			'lvl_black_market',
+			'lvl_hmansion',
+			'lvl_yeti',
+			'lvl_cog',
+			'lvl_mothership',
+			'has_compass',
+			'has_parachute',
+			'has_jetpack',
+			'has_climbing_gloves',
+			'has_pitchers_mitt',
+			'has_spring_shoes',
+			'has_spike_shoes',
+			'has_spectacles',
+			'has_kapala',
+			'has_hedjet',
+			'has_udjat_eye',
+			'has_book_of_dead',
+			'has_ankh',
+			'has_paste',
+			'has_cape',
+			'has_vlads_cape',
+			'has_crysknife',
+			'has_vlads_amulet',
+			'game_timer']
+
+
 	def __init__(self):
+	
 
 		self._set_pid()
 
@@ -494,7 +519,7 @@ class Spelunker:
 	def read_uint(self,name):
 		return ReadProcessMemory_ctype(self.handle,self.current_game+self.mem[name],c.c_uint).value
 		
-	# read and return a uint from the specificed named memory location, and convert to its signed representation
+	# read and return an int from the specificed named memory location
 	def read_int(self,name):
 		return ReadProcessMemory_ctype(self.handle,self.current_game+self.mem[name],c.c_int).value
 			
@@ -510,14 +535,17 @@ class Spelunker:
 	# read a TimeInfo struct from game addr + timer_offset_TimeInfo
 	@property
 	def game_timer(self):
-		t = ReadProcessMemory_TimeInfo(self.handle,self.current_game+self.mem['game_timer_offset_TimeInfo'])
+		t = ReadProcessMemory_ctype(self.handle,self.current_game+self.mem['game_timer_offset_TimeInfo'],TimeInfo)
 		return t.total_ms()
 
 	# read a TimeInfo struct from game addr + timer_offset_TimeInfo
 	@property
 	def level_timer(self):
-		t = ReadProcessMemory_TimeInfo(self.handle,self.current_game+self.mem['level_timer_offset_TimeInfo'])
+		t = ReadProcessMemory_ctype(self.handle,self.current_game+self.mem['level_timer_offset_TimeInfo'],TimeInfo)
 		return t.total_ms()
+		
+	def angry_shopkeeper(self):
+		return self.angry_shopkeeper_2 or self.angry_shopkeeper_1
 
 	# enumerate all processes to find spelunky.exe and set self.pid
 	def _set_pid(self):
@@ -539,44 +567,8 @@ class Spelunker:
 def main():
 	sp = Spelunker()
 	while True:
-		print('gold_count',sp.gold_count)
-		print('health',sp.health)
-		print('bombs',sp.bombs)
-		print('ropes',sp.ropes)
-		print('favour',sp.favour)
-		print('level',sp.level)
-		print('is_dead',sp.is_dead)
-		print('killed_by',sp.killed_by)
-		print('lvl_dark',sp.lvl_dark)
-		print('lvl_worm',sp.lvl_worm)
-		print('lvl_black_market',sp.lvl_black_market)
-		print('lvl_hmansion',sp.lvl_hmansion)
-		print('lvl_yeti',sp.lvl_yeti)
-		print('lvl_cog',sp.lvl_cog)
-		print('lvl_mothership',sp.lvl_mothership)
-		print('angry_shopkeeper_1',sp.angry_shopkeeper_1)
-		print('angry_shopkeeper_2',sp.angry_shopkeeper_2)
-		print('has_compass',sp.has_compass)
-		print('has_parachute',sp.has_parachute)
-		print('has_jetpack',sp.has_jetpack)
-		print('has_climbing_gloves',sp.has_climbing_gloves)
-		print('has_pitchers_mitt',sp.has_pitchers_mitt)
-		print('has_spring_shoes',sp.has_spring_shoes)
-		print('has_spike_shoes',sp.has_spike_shoes)
-		print('has_spectacles',sp.has_spectacles)
-		print('has_kapala',sp.has_kapala)
-		print('has_hedjet',sp.has_hedjet)
-		print('has_udjat_eye',sp.has_udjat_eye)
-		print('has_book_of_dead',sp.has_book_of_dead)
-		print('has_ankh',sp.has_ankh)
-		print('has_paste',sp.has_paste)
-		print('has_cape',sp.has_cape)
-		print('has_vlads_cape',sp.has_vlads_cape)
-		print('has_crysknife',sp.has_crysknife)
-		print('has_vlads_amulet',sp.has_vlads_amulet)
-		print()
+		list(map(lambda x,print(x,':',sp.x),Spelunker.ALL_ATTRIBUTES))
 		time.sleep(5)
-
 
 
 if __name__ == "__main__":
