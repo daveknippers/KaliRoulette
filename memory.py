@@ -544,6 +544,7 @@ class Spelunker:
 		t = ReadProcessMemory_ctype(self.handle,self.current_game+self.mem['level_timer_offset_TimeInfo'],TimeInfo)
 		return t.total_ms()
 		
+	@property
 	def angry_shopkeeper(self):
 		return self.angry_shopkeeper_2 or self.angry_shopkeeper_1
 
@@ -563,13 +564,3 @@ class Spelunker:
 		else:
 			self.pid = spelunky_candidates[0][0]
 			
-
-def main():
-	sp = Spelunker()
-	while True:
-		list(map(lambda x,print(x,':',sp.x),Spelunker.ALL_ATTRIBUTES))
-		time.sleep(5)
-
-
-if __name__ == "__main__":
-	main()
