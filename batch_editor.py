@@ -133,9 +133,5 @@ def merge_old_data_2():
 	sql_engine_3.close()
 	
 
-	
-	
-	
-	
 if __name__ == '__main__':
 	merge_old_data_2()

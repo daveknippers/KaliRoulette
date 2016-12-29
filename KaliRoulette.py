@@ -29,8 +29,6 @@ class Oracle(mp.Process):
 
 		while True:
 			last_state = self.state_queue.get()
-			
-
 
 class KaliState(mp.Process):
 
@@ -75,6 +73,8 @@ class KaliState(mp.Process):
 			in_mothership = sp.lvl_mothership
 			angry_keeper = sp.angry_shopkeeper
 
+			print(self.last_level,self.seq)
+
 			if dead:
 				if self.last_level:
 					# first time death notification
@@ -82,28 +82,34 @@ class KaliState(mp.Process):
 					self.announce()
 					print('In KaliState process, You have died')
 			else:
-				if not current_level and self.last_level == 16 or self.last_level == 20:
+				if not current_level and (self.last_level == 16 or self.last_level == 20):
 					# we just won!
 					self.last_level = 0
 					self.announce()
 					print('In KaliState process, We just won!')
-				elif not self.last_level and current_level > 0:
+				elif not self.last_level and current_level >= 0 and self.seq > 1:
 					# just started a new game
 					self.start_time = int(time.time())
 					self.angry_shopkeeper_trigger = False
 					self.mothership_trigger = False
 					self.seq = 1
+					self.last_level = current_level
+					print('In KaliState process, cleansing our state')
 					if current_level % 4 == 1: # deal with shortcuts
 						self.announce()
 						print('In KaliState process, New game started')
-					self.last_level = current_level
 					
-				elif current_level > self.last_level and timer > 0:
+				elif current_level > self.last_level:
 					# just got to a new level
 					self.last_level = current_level
-					self.announce()
-					print('In KaliState process, finished level.')
-					
+					if self.seq == 1 and current_level % 4 == 1:
+						print('In KaliState process, New game started')
+						self.announce()
+					elif self.seq == 1:
+						pass
+					else:
+						print('In KaliState process, Level Finished')
+						self.announce()
 				elif in_mothership and current_level == 11 and not self.mothership_trigger:
 					# entered the mothership, special level processing
 					self.mothership_trigger = True
@@ -128,8 +134,6 @@ class KaliState(mp.Process):
 		except AttributeError:
 			print('\nSpelunky data collection stopped.\n')
 
-
-				
 class KaliWhisper(cmd.Cmd):
 	intro = 'Welcome to the KaliRoulette shell. Type help or ? to list commands.\n'
 	prompt = '(Whisper to Kali) '
@@ -151,17 +155,6 @@ class KaliWhisper(cmd.Cmd):
 			self.game_state.start()
 			self.oracle = Oracle(self.state_queue)
 			self.oracle.start()
-
-
-
-
-
-
-
-
-	
-	
-	
 
 if __name__ == "__main__":
 	KaliWhisper().cmdloop()
