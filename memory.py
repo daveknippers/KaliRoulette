@@ -5,7 +5,7 @@ from ctypes import wintypes
 from copy import copy
 from collections import UserDict
 from functools import partial
-import win32api, win32con, struct, binascii, win32, sys, time, math
+import win32api, win32con, struct, binascii, win32, sys, time, math, logging
 
 class MEMORY_BASIC_INFORMATION(c.Structure):
 
@@ -388,10 +388,9 @@ class SpelunkySignatures(UserDict):
 		self['angry_shopkeeper_1_offset_char'] = self['health_offset_uint']-0x88
 		self['angry_shopkeeper_2_offset_char'] = self['health_offset_uint']-0xAB
 
-		print()
 		for location,value in sorted(list(self.items()),key=lambda x: x[1]):
+			logging.info(hex(int(value)),location)
 			print(hex(int(value)),location)
-		print()
 
 class Spelunker:
 
