@@ -432,13 +432,10 @@ class Spelunker:
 
 
 	def __init__(self):
-	
 
 		self._set_pid()
 
 		# these are the OpenProcess flags Frozlunky uses.
-		# i kinda looked into them. seemed reasonable. i'm not sure if they'd work 
-		# if we were doing a dll injection.
 		self.spelunky_process = win32api.OpenProcess(win32con.PROCESS_CREATE_THREAD|
 								win32con.PROCESS_QUERY_INFORMATION|
 								win32con.PROCESS_SET_INFORMATION|
@@ -450,7 +447,6 @@ class Spelunker:
 								True,self.pid)
 		self.handle = self.spelunky_process.handle
 
-		# this doesn't work in 64 bit and i have no idea why. help!
 		self.spelunky_base = GetModuleBase(self.handle)
 
 		if not self.spelunky_process:
