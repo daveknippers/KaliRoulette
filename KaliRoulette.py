@@ -1,8 +1,8 @@
+
+import time, argparse, os
 import pandas as pd
 import irc.bot
-import time
 
-import argparse
 
 from oauth_token import oauth_token
 from memory import Spelunker
@@ -14,13 +14,20 @@ class KaliBot(irc.bot.SingleServerIRCBot):
 	def __init__(self, server, channel, nickname):
 		irc.bot.SingleServerIRCBot.__init__(self, [server], nickname, nickname)
 
+		if not os.path.exists('death_types.csv'):
+			raise ValueError('death_types.csv not found, cannot continue.')
+
+		self.death_types_df = pd.read_csv('death_types.csv',index_col=False,
+				names=['death_id','internal_death_name','death_name'],
+				dtype={'death_id':int,'internal_death_name':str,'death_name':str})
+
+		if not os.path.exists('KaliRoulette.db'):
+			print('No Kali Roulette database exists. Creating {}'.format('KaliRoulette.db'))
+			no_db = True
+
+
 		self.channel = channel
 		self.sp = Spelunker()
-
-		self.reactor.scheduler.execute_every(2,self.process_spelunker)
-
-		self.run_columns = ['start_time','seq','player']
-		self.run_columns.extend(Spelunker.ALL_ATTRIBUTES)
 
 		self.enable_bets = False
 		
@@ -31,8 +38,10 @@ class KaliBot(irc.bot.SingleServerIRCBot):
 		self.has_ankh  = self.sp.has_ankh
 		
 		self.show_pause = True
-
 		self.lock = Lock()
+
+		self.reactor.scheduler.execute_every(2,self.process_spelunker)
+
 
 	def process_spelunker(self):
 		self.lock.acquire()
@@ -116,14 +125,39 @@ class KaliBot(irc.bot.SingleServerIRCBot):
 			self.lock.acquire()
 			if self.enable_bets:
 				if len(msg) != 3:
-					reason = "Invalid betting parameters. Try !bet amount death_cause. The causes can be found on bunny_funeral's channel panels.")
+					reason = "Invalid betting parameters. Try !bet amount death_cause. The causes can be found on bunny_funeral's channel panels."
 					self.send_message(user,reason)
 				else:
+					amount = msg[1]
+					try:
+						amount = int(amount)
+						if amount < 1:
+							raise ValueError()
+					except ValueError:
+						reason = 'Invalid betting amount. Please enter a positive whole number.'
+						self.send_message(user,reason)
+						amount = None
 
-
+					if amount is not None:
+						if len(msg[2]) == 0:
+							reason = "Please enter a valid death reason. The causes can be found in bunny_funeral's channel panels."
+							self.send_message(user,reason)
+						else:
+							response = self.make_bet(user,amount,cause)
+							self.send_message(user,response)
 			else:
 				self.send_message('Betting is currently disallowed. Please wait for the game to pause.',user)
 			self.lock.release()
+		
+		if command == 'balance':
+				response = self.get_balance(user)
+				self.send_message(user,response)
+
+	def make_bet(self, user, amount, cause):
+		pass
+
+	def get_balance(self,user):
+		pass
 
 def KaliRoulette(streamer_name, bot_name):
 
@@ -139,5 +173,5 @@ if __name__ == "__main__":
 	if args.streamer is None or args.bot_name is None:
 		parser.print_help()
 	else:
-		KaliRoulette(args.streamer)
+		KaliRoulette(args.streamer,args.bot_name)
 				   

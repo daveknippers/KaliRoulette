@@ -1,74 +1,73 @@
-snake,1001,15,confirmed - contact damage,,,,,,
-cobra,1036,17,"confirmed - spit damage, also contact damage",,,,,,
-bat,1003,52,confirmed,,,,,,
-spider,1002,51,confirmed,,,,,,
-spinner_spider,1037,13,confirmed,,,,,,
-giant_spider,1018,111,confirmed,,,,,,
-skeleton,1012,19,confirmed,,,,,,
-scorpion,1029,19,confirmed,,,,,,
-caveman,1004,18,confirmed - caveman pummled me to death,,,,,,
-shopkeeper_contact,1006,871,confirmed - was smacked to death,,,,,,
-shopkeeper_shot,1215,,confirmed - shot,,,,,,
-tiki_man,1041,30,"confirmed - boomerang, 'beaten up'",,,,,,
-blue_frog,1007,19,confirmed,,,,,,
-orange_frog,1021,14,"confirmed - explosion killed me, says 'I got squished by a frog', ran into one, said same thing.",,,,,,
-big_frog,1038,3,confirmed,,,,,,
-mantrap,1008,43,confirmed,,,,,,
-pihrana,1013,26,confirmed,,,,,,
-old_bitey,1023,1,confirmed,,,,,,
-bee,1032,11,confirmed,,,,,,
-queen_bee,1034,15,confirmed,,,,,,
-snail,1043,3,confirmed,,,,,,
-jiang_shi,1019,3,confirmed,,,,,,
-knight,1045,0,confirmed,,,,,,
-black_knight,1049,2,confirmed,,,,,,
-vampire,1020,8,confirmed,,,,,,
-ghost,1017,17,confirmed,,,,,,
-bacterium,1035,3,confirmed,,,,,,
-worm_egg,1046,0,confirmed,,,,,,
-worm_baby,1047,1,confirmed,,,,,,
-yeti,1009,11,confirmed,,,,,,
-king_yeti_contact,1205,1,"confirmed, beaten up",,,,,,
-king_yeti_icicle,1025,,,,,,,,
-mammoth,1039,16,confirmed,,,,,,
-alien,1026,0,confirmed,,,,,,
-ufo,1010,6,confirmed,,,,,,
-alien_tank,1040,0,confirmed,,,,,,
-alien_lord,1016,10,confirmed - brain fried,,,,,,
-alien_queen,,5,,,,,,,
-hawk_man,1011,5,confirmed - beaten up,,,,,,
-croc_man,1044,9,confirmed - beaten up,,,,,,
-magma_man,1027,2,confirmed,,,,,,
-scorpion_fly,1042,5,"confirmed - stung, both with wings and without",,,,,,
-mummy,1014,67,confirmed,,,,,,
-anubis_1,1033,49,"confirmed, died to purple spinning laser, also contact damage",,,,,,
-anubis_2,1054,0,confirmed,,,,,,
-olmec,1055,9,confirmed,,,,,,
-vlad,1028,0,,,,,,,
-imp,1030,0,confirmed,,,,,,
-devil,1031,0,confirmed - poked,,,,,,
-succubus,1051,0,confirmed,,,,,,
-horsehead,1052,0,confirmed,,,,,,
-oxface,1053,0,confirmed,,,,,,
-yama,1056,0,"confirmed, got punched by fist",,,,,,
-spike,1100,395,confirmed,,,,,,
-arrow_trap,1101,178,confirmed,,,,,,
-powder_box,1102,32,confirmed,,,,,,
-boulder,1103,15,confirmed,,,,,,
-tiki_trap,1104,226,confirmed,,,,,,
-acid,1105,1,confirmed,,,,,,
-mine,1107,28,confirmed,,,,,,
-turret,1108,1,confirmed,,,,,,
-force_field,1109,2,confirmed,,,,,,
-crush_trap,1110,60,confirmed,,,,,,
-ceiling_trap,1111,4,confirmed,,,,,,
-spike_ball,1113,1,confirmed,,,,,,
-lava,1112,65,confirmed,,,,,,
-abyss,1208,,confirmed,,,,,,
-fall_damage,1201,,confirmed,,,,,,
-item_contact,1200,,confirmed,,,,,,
-self_sacrifice,1214,,confirmed,,,,,,
-bomb,1202,,confirmed,,,,,,
-crushing,1206,,crushed - I've been ground into a fine place' after teleporter usage,,,,,,
-sceptre,1216,,brain fried after firing it at myself,,,,,,
-bullet_reflection,99999,,confirmed?,,,,,,
+1001,snake,snake,murdered by a snake.
+1036,cobra,cobra,murdered by a cobra.
+1003,bat,bat,murdered by a bat.
+1002,spider,spider,murdered by a spider.
+1037,spinner_spider,spinner_spider,murdered by a spinner spider.
+1018,giant_spider,giant_spider,murdered by a giant spider.
+1012,skeleton,skeleton,murdered by a skeleton
+1029,scorpion,scorpion,murdered by a scorpion.
+1004,caveman,caveman,murdered by a caveman.
+1006,shopkeeper_contact,shopkeeper,murdered by a shopkeeper.
+1215,shopkeeper_shot,shopkeeper,murdered by a shopkeeper.
+1041,tiki_man,tiki_man,murdered by a tiki man.
+1007,blue_frog,blue_frog,murdered by a blue frog.
+1021,orange_frog,orange_frog,murdered by an orange frog.
+1038,big_frog,big_frog,murdered by a big frog.
+1008,mantrap,mantrap,murdered by a man trap plant.
+1013,piranha,piranha,murdered by a piranha.
+1023,old_bitey,orange_frog,murdered by Old Bitey.
+1032,bee,bee,murdered by a bee.
+1034,queen_bee,queen_bee,murdered by the Queen Bee.
+1043,snail,snail,murdered by a snail.
+1019,jiang_shi,jiang_shi,murdered by a jiangshi.
+1045,knight,knight,murdered by a knight.
+1049,black_knight,black_knight,murdered by the black knight.
+1020,vampire,vampire,murdered by a vampire.
+1017,ghost,ghost,murdered by the ghost.
+1035,bacterium,bacterium,murdered by a bacterium.
+1046,worm_egg,worm_egg,murdered by a worm egg.
+1047,worm_baby,worm_baby,murdered by a worm baby.
+1009,yeti,yeti,murdered by a yeti.
+1205,king_yeti_contact,king_yeti,murdered by the King Yeti.
+1025,king_yeti_icicle,king_yeti,murdered by the King Yeti.
+1039,mammoth,mammoth,murdered by a mammoth.
+1026,alien,alien,murdered by an alien.
+1010,ufo,ufo,murdered by an UFO.
+1040,alien_tank,alien_tank,murdered by an alien tank.
+1016,alien_lord,alien_lord,murdered by an alien lord.
+1011,hawk_man,hawk_man,murdered by a hawk man.
+1044,croc_man,croc_man,murdered by a croc man.
+1027,magma_man,magma_man,murdered by a magma man.
+1042,scorpion_fly,scorpion_fly,murdered by a scorpion fly.
+1014,mummy,mummy,murdered by a mummy.
+1033,anubis_1,anubis,murdered by Anubis.
+1054,anubis_2,anubis,murdered by Anubis.
+1055,olmec,olmec,murdered by Olmec.
+1028,vlad,vlad,murdered by Vlad.
+1030,imp,imp,murdered by an imp.
+1031,devil,devil,murdered by a blue devil.
+1051,succubus,succubus,murdered by a succubus.
+1052,horsehead,horsehead,murdered by Horsehead.
+1053,oxface,oxface,murdered by Oxface.
+1056,yama,yama,murdered by Yama.
+1113,spike_ball,spike_ball,eviscerated by a ball of spikes.
+1100,spike,spike,eviscerated on a spike trap.
+1101,arrow_trap,arrow_trap,eviscerated by an arrow trap.
+1104,tiki_trap,tiki_trap,eviscerated by a tiki trap.
+1105,acid,acid,digested in acid.
+1108,turret,turret,blasted by a turret.
+1109,force_field,force_field,zapped to death by a force field.
+1112,lava,lava,burned to death in a pit of lava.
+1208,abyss,abyss,eaten by the abyss.
+1201,fall_damage,fall_damage,killed on impact.
+1200,item_contact,item_contact_damage,knocked out by a flying item.
+1214,self_sacrifice,suicide,sacrificed to Kali.
+1216,sceptre,suicide,killed by their own sceptre blast.
+99999,bullet_reflection,suicide,penetrated by their own bullet.
+1102,powder_box,bomb,exploded.
+1107,mine,bomb,exploded.
+1202,bomb,bomb,exploded.
+1206,crushed,crushed,ground into a fine paste.
+1110,crush_trap,crushed,ground into a fine paste.
+1111,ceiling_trap,crushed,ground into a fine paste.
+1103,boulder,crushed,was crushed by a boulder.
