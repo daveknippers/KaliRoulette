@@ -1,7 +1,9 @@
 # KaliRoulette
 By Dave Knippers (dave.knippers [at] gmail dot com) and Justin Miller 
 
-(https://github.com/daveknippers/KaliRoulette/blob/master/justins_finest_work.png?raw=true)
+<p align="center">
+(justins_finest_work.png)
+</p>
 
 After a year of procrastination, Spelunky Bet / Kali Roulette is available! Now you can bet live in Twitch chat on how I'm going to die, and be rewarded with the bounty of GOLDEN DAVE idols
 

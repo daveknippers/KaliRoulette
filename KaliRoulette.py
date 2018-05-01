@@ -90,11 +90,14 @@ class Bookie(Thread):
 				else:
 					try:
 						death_cause = self.death_map[death_cause_id]
+						multiplier = self.death_multiplier_map[death_cause_id]
 					except KeyError:
 						pub_msg_q.put("OH LORDY, I HOPE THERE'S TAPES")
 						pub_msg_q.put("Streamer was killed by {}, but I don't have a record of that cause of death.")
 						pub_msg_q.put('Not to worry, your GOLDEN DAVES are still safe. If you think you deserve something, please write an essay detailing why and put it in the trash')
 						active_bets = {}
+						death_cause = str(death_cause_id)
+						multiplier = 0
 
 				payouts = {}
 				n_bets = 0
@@ -108,7 +111,7 @@ class Bookie(Thread):
 
 					for a,c,l in acls:
 						if death_cause == c:
-							user_payouts += 2*a
+							user_payouts += a*multiplier
 							n_winning_bets += 1
 						else:
 							user_payouts -= a
