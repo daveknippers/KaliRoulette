@@ -5,11 +5,11 @@ By Dave Knippers (dave.knippers [at] gmail dot com) and Justin Miller
 <img src="justins_finest_work.png">
 </p>
 
-After a year of procrastination, Spelunky Bet / Kali Roulette is available! Now you can bet live in Twitch chat on how I'm going to die, and be rewarded with the bounty of GOLDEN DAVE idols
+After a year of procrastination, Spelunky Bet / Kali Roulette is available! Now you can bet live in Twitch chat on how I'm going to die, and be rewarded with the bounty of GOLDEN DAVE idols, which hold a lot of sentimental value.
 
 Everyone starts with 1000 GOLDEN DAVES. If you lose all your GOLDEN DAVES, you'll get 100 GOLDEN DAVES at the start of the next attempt.
 
-Each cause of death has a multiplier on payout on a correct bet. For example, betting 100 GOLDEN DAVES on the shopkeeper will yield 400 GOLDEN DAVES on a correct bet as the shopkeeper has a payout modifier of 4.
+Each cause of death has a multiplier on payout on a correct bet. For example, wagering 100 GOLDEN DAVES on the shopkeeper will yield 400 GOLDEN DAVES if the shopkeeper kills the streamer, as he has a payout multiplier of 4.
 
 # Commands
 The bot accepts the following commands:
@@ -85,6 +85,10 @@ The bot accepts the following commands:
 | suicide (*) | 32 |
 
 (*) suicide includes having your own bullets reflected back at you, killing yourself with the sceptre and sacrificing yourself to Kali.
+
+# Future development
+
+We'd like to add some sort of wagering on the level on the streamer's death, and we're collecting better statistics to make the payout multipliers more balanced.
 
 # Copyright (do what you want)
 Copyright (c) 2017, 2018 Dave Knippers and Justin Miller
