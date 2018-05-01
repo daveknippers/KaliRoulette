@@ -1,73 +1,73 @@
-1001,snake,snake,murdered by a snake.
-1036,cobra,cobra,murdered by a cobra.
-1003,bat,bat,murdered by a bat.
-1002,spider,spider,murdered by a spider.
-1037,spinner_spider,spinner_spider,murdered by a spinner spider.
-1018,giant_spider,giant_spider,murdered by a giant spider.
-1012,skeleton,skeleton,murdered by a skeleton
-1029,scorpion,scorpion,murdered by a scorpion.
-1004,caveman,caveman,murdered by a caveman.
-1006,shopkeeper_contact,shopkeeper,murdered by a shopkeeper.
-1215,shopkeeper_shot,shopkeeper,murdered by a shopkeeper.
-1041,tiki_man,tiki_man,murdered by a tiki man.
-1007,blue_frog,blue_frog,murdered by a blue frog.
-1021,orange_frog,orange_frog,murdered by an orange frog.
-1038,big_frog,big_frog,murdered by a big frog.
-1008,mantrap,mantrap,murdered by a man trap plant.
-1013,piranha,piranha,murdered by a piranha.
-1023,old_bitey,orange_frog,murdered by Old Bitey.
-1032,bee,bee,murdered by a bee.
-1034,queen_bee,queen_bee,murdered by the Queen Bee.
-1043,snail,snail,murdered by a snail.
-1019,jiang_shi,jiang_shi,murdered by a jiangshi.
-1045,knight,knight,murdered by a knight.
-1049,black_knight,black_knight,murdered by the black knight.
-1020,vampire,vampire,murdered by a vampire.
-1017,ghost,ghost,murdered by the ghost.
-1035,bacterium,bacterium,murdered by a bacterium.
-1046,worm_egg,worm_egg,murdered by a worm egg.
-1047,worm_baby,worm_baby,murdered by a worm baby.
-1009,yeti,yeti,murdered by a yeti.
-1205,king_yeti_contact,king_yeti,murdered by the King Yeti.
-1025,king_yeti_icicle,king_yeti,murdered by the King Yeti.
-1039,mammoth,mammoth,murdered by a mammoth.
-1026,alien,alien,murdered by an alien.
-1010,ufo,ufo,murdered by an UFO.
-1040,alien_tank,alien_tank,murdered by an alien tank.
-1016,alien_lord,alien_lord,murdered by an alien lord.
-1011,hawk_man,hawk_man,murdered by a hawk man.
-1044,croc_man,croc_man,murdered by a croc man.
-1027,magma_man,magma_man,murdered by a magma man.
-1042,scorpion_fly,scorpion_fly,murdered by a scorpion fly.
-1014,mummy,mummy,murdered by a mummy.
-1033,anubis_1,anubis,murdered by Anubis.
-1054,anubis_2,anubis,murdered by Anubis.
-1055,olmec,olmec,murdered by Olmec.
-1028,vlad,vlad,murdered by Vlad.
-1030,imp,imp,murdered by an imp.
-1031,devil,devil,murdered by a blue devil.
-1051,succubus,succubus,murdered by a succubus.
-1052,horsehead,horsehead,murdered by Horsehead.
-1053,oxface,oxface,murdered by Oxface.
-1056,yama,yama,murdered by Yama.
-1113,spike_ball,spike_ball,eviscerated by a ball of spikes.
-1100,spike,spike,eviscerated on a spike trap.
-1101,arrow_trap,arrow_trap,eviscerated by an arrow trap.
-1104,tiki_trap,tiki_trap,eviscerated by a tiki trap.
-1105,acid,acid,digested in acid.
-1108,turret,turret,blasted by a turret.
-1109,force_field,force_field,zapped to death by a force field.
-1112,lava,lava,burned to death in a pit of lava.
-1208,abyss,abyss,eaten by the abyss.
-1201,fall_damage,fall_damage,killed on impact.
-1200,item_contact,item_contact_damage,knocked out by a flying item.
-1214,self_sacrifice,suicide,sacrificed to Kali.
-1216,sceptre,suicide,killed by their own sceptre blast.
-99999,bullet_reflection,suicide,penetrated by their own bullet.
-1102,powder_box,bomb,exploded.
-1107,mine,bomb,exploded.
-1202,bomb,bomb,exploded.
-1206,crushed,crushed,ground into a fine paste.
-1110,crush_trap,crushed,ground into a fine paste.
-1111,ceiling_trap,crushed,ground into a fine paste.
-1103,boulder,crushed,was crushed by a boulder.
+1001,snake,snake,murdered by a snake.,8
+1036,cobra,cobra,murdered by a cobra.,8
+1003,bat,bat,murdered by a bat.,8
+1002,spider,spider,murdered by a spider.,8
+1037,spinner_spider,spinner_spider,murdered by a spinner spider.,8
+1018,giant_spider,giant_spider,murdered by a giant spider.,6
+1012,skeleton,skeleton,murdered by a skeleton.,8
+1029,scorpion,scorpion,murdered by a scorpion.,6
+1004,caveman,caveman,murdered by a caveman.,12
+1006,shopkeeper_contact,shopkeeper,murdered by a shopkeeper.,4
+1215,shopkeeper_shot,shopkeeper,murdered by a shopkeeper.,4
+1041,tiki_man,tiki_man,murdered by a tiki man.,8
+1007,blue_frog,blue_frog,murdered by a blue frog.,8
+1021,orange_frog,orange_frog,murdered by an orange frog.,6
+1038,big_frog,big_frog,murdered by a big frog.,6
+1008,mantrap,mantrap,murdered by a man trap plant.,6
+1013,piranha,piranha,murdered by a piranha.,6
+1023,old_bitey,old_bitey,murdered by Old Bitey.,24
+1032,bee,bee,murdered by a bee.,12
+1034,queen_bee,queen_bee,murdered by the Queen Bee.,16
+1043,snail,snail,murdered by a snail.,10
+1019,jiang_shi,jiang_shi,murdered by a jiangshi.,10
+1045,knight,knight,murdered by a knight.,10
+1049,black_knight,black_knight,murdered by the Black Knight.,12
+1020,vampire,vampire,murdered by a vampire.,10
+1017,ghost,ghost,murdered by the ghost.,16
+1035,bacterium,bacterium,murdered by a bacterium.,10
+1046,worm_egg,worm_egg,murdered by a worm egg.,12
+1047,worm_baby,worm_baby,murdered by a worm baby.,12
+1009,yeti,yeti,murdered by a yeti.,6
+1205,king_yeti_contact,king_yeti,murdered by the King Yeti.,12
+1025,king_yeti_icicle,king_yeti,murdered by the King Yeti.12
+1039,mammoth,mammoth,murdered by a mammoth.,6
+1026,alien,alien,murdered by an alien.,16
+1010,ufo,ufo,murdered by an UFO.,10
+1040,alien_tank,alien_tank,murdered by an alien tank.,12
+1016,alien_lord,alien_lord,murdered by an alien lord.,16
+1011,hawk_man,hawk_man,murdered by a hawk man.,8
+1044,croc_man,croc_man,murdered by a croc man.,12
+1027,magma_man,magma_man,murdered by a magma man.,8
+1042,scorpion_fly,scorpion_fly,murdered by a scorpion fly.,8
+1014,mummy,mummy,murdered by a mummy.,8
+1033,anubis_1,anubis,murdered by Anubis.,10
+1054,anubis_2,anubis,murdered by Anubis.,10
+1055,olmec,olmec,murdered by Olmec.,24
+1028,vlad,vlad,murdered by Vlad.,32
+1030,imp,imp,murdered by an imp.,16
+1031,devil,devil,murdered by a blue devil.,16
+1051,succubus,succubus,murdered by a succubus.,16
+1052,horsehead,horsehead,murdered by Horsehead.,24
+1053,oxface,oxface,murdered by Oxface.,24
+1056,yama,yama,murdered by Yama.,32
+1113,spike_ball,spike_ball,eviscerated by a ball of spikes.,16
+1100,spike,spike,eviscerated on a spike trap.,8
+1101,arrow_trap,arrow_trap,eviscerated by an arrow trap.,8
+1104,tiki_trap,tiki_trap,eviscerated by a tiki trap.,8
+1105,acid,acid,digested in acid.,16
+1108,turret,turret,blasted by a turret.,16
+1109,force_field,force_field,zapped to death by a force field.,24
+1112,lava,lava,burned to death in a pit of lava.,12
+1208,abyss,abyss,eaten by the abyss.,12
+1201,fall_damage,fall_damage,killed on impact.,10
+1200,item_contact,item_contact_damage,knocked out by a flying item.,24
+1214,self_sacrifice,suicide,sacrificed to Kali.,32
+1216,sceptre,suicide,killed by their own sceptre blast.,32
+99999,bullet_reflection,suicide,penetrated by their own bullet.,32
+1102,powder_box,bomb,exploded.,10
+1107,mine,bomb,exploded.,10
+1202,bomb,bomb,exploded.,10
+1206,crushed,crushed,ground into a fine paste.,12
+1110,crush_trap,crushed,ground into a fine paste.,12
+1111,ceiling_trap,crushed,ground into a fine paste.,12
+1103,boulder,crushed,was crushed by a boulder.,12
