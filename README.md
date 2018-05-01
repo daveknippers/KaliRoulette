@@ -14,69 +14,71 @@ The bot accepts the following commands:
 !balance
 
 # Causes of death
-snake [payout multiplier 4]  
-cobra [payout multiplier 4]  
-bat [payout multiplier 4]  
-spider [payout multiplier 4]  
-spinner_spider [payout multiplier 4]  
-giant_spider [payout multiplier 4]  
-skeleton [payout multiplier 4]  
-scorpion [payout multiplier 4]  
-caveman [payout multiplier 4]  
-shopkeeper [payout multiplier 4]  
-tiki_man [payout multiplier 4]  
-blue_frog [payout multiplier 4]  
-orange_frog [payout multiplier 4]  
-big_frog [payout multiplier 4]  
-mantrap [payout multiplier 4]  
-piranha [payout multiplier 4]  
-orange_frog [payout multiplier 4]  
-bee [payout multiplier 4]  
-queen_bee [payout multiplier 4]  
-snail [payout multiplier 4]  
-jiang_shi [payout multiplier 4]  
-knight [payout multiplier 4]  
-black_knight [payout multiplier 4]  
-vampire [payout multiplier 4]  
-ghost [payout multiplier 4]  
-bacterium [payout multiplier 4]  
-worm_egg [payout multiplier 4]  
-worm_baby [payout multiplier 4]  
-yeti [payout multiplier 4]  
-king_yeti [payout multiplier 4]  
-mammoth [payout multiplier 4]  
-alien [payout multiplier 4]  
-ufo [payout multiplier 4]  
-alien_tank [payout multiplier 4]  
-alien_lord [payout multiplier 4]  
-hawk_man [payout multiplier 4]  
-croc_man [payout multiplier 4]  
-magma_man [payout multiplier 4]  
-scorpion_fly [payout multiplier 4]  
-mummy [payout multiplier 4]  
-anubis [payout multiplier 4]  
-olmec [payout multiplier 4]  
-vlad [payout multiplier 32]  
-imp [payout multiplier 4]  
-devil [payout multiplier 4]  
-succubus [payout multiplier 4]  
-horsehead [payout multiplier 4]  
-oxface [payout multiplier 4]  
-yama [payout multiplier 4]  
-spike_ball [payout multiplier 4]  
-spike [payout multiplier 4]  
-arrow_trap [payout multiplier 4]  
-tiki_trap [payout multiplier 4]  
-acid [payout multiplier 4]  
-turret [payout multiplier 4]  
-force_field [payout multiplier 4]  
-lava [payout multiplier 4]  
-abyss [payout multiplier 4]  
-fall_damage [payout multiplier 4]  
-item_contact_damage [payout multiplier 4]  
-suicide (*) [payout multiplier 4]  
-bomb [payout multiplier 4]  
-crushed [payout multiplier 4]  
+| Death cause | Payout multiplier |
+| ----------- | ----------------- |
+| snake | 8 |
+| cobra | 8 |
+| bat | 8 |
+| spider | 8 |
+| spinner_spider | 8 |
+| giant_spider | 6 |
+| skeleton | 8 |
+| scorpion | 6 |
+| caveman,12 |
+| shopkeeper | 4 |
+| tiki_man | 8 |
+| blue_frog | 8 |
+| orange_frog | 6 |
+| big_frog | 6 |
+| mantrap | 6 |
+| piranha | 6 |
+| old_bitey | 24 |
+| bee | 12 |
+| queen_bee| 16 |
+| snail | 10 |
+| jiang_shi | 10 |
+| knight | 10 |
+| black_knight | 12 |
+| vampire | 10 |
+| ghost | 16 |
+| bacterium | 10 |
+| worm_egg | 12 |
+| worm_baby | 12 |
+| yeti | 6 |
+| king_yeti | 12 |
+| mammoth | 6 |
+| alien | 16 |
+| ufo | 10 |
+| alien_tank | 12 |
+| alien_lord | 16 |
+| hawk_man | 8 |
+| croc_man | 12 |
+| magma_man | 8 |
+| scorpion_fly |8 |
+| mummy | 8 |
+| anubis | 10 |
+| olmec | 24 |
+| vlad | 32 |
+| imp | 16 |
+| devil | 16 |
+| succubus | 16 |
+| horsehead | 24 |
+| oxface | 24 |
+| yama | 32 |
+| spike_ball |16 |
+| spike | 8 |
+| arrow_trap |8 |
+| tiki_trap |8 |
+| acid |16 |
+| turret | 16 |
+| force_field | 24 |
+| lava | 12 |
+| abyss | 12 |
+| fall_damage | 10 |
+| item_contact_damage | 24 |
+| bomb | 10 |
+| crushed | 12 |
+| suicide (*) | 32 |
 
 (*) suicide includes having your own bullets reflected back at you, killing yourself with the sceptre and sacrificing yourself to Kali.
 
