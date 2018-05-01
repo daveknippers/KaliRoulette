@@ -1,6 +1,8 @@
 # KaliRoulette
 By Dave Knippers (dave.knippers [at] gmail dot com) and Justin Miller 
 
+(https://github.com/daveknippers/KaliRoulette/blob/master/justins_finest_work.png?raw=true)
+
 After a year of procrastination, Spelunky Bet / Kali Roulette is available! Now you can bet live in Twitch chat on how I'm going to die, and be rewarded with the bounty of GOLDEN DAVE idols
 
 Everyone starts with 1000 GOLDEN DAVES. If you lose all your GOLDEN DAVES, you'll get 100 GOLDEN DAVES at the start of the next attempt.
