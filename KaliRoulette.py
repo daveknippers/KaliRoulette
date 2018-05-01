@@ -32,7 +32,7 @@ class Bookie(Thread):
 			print('No Kali Roulette database exists. Creating {}'.format('KaliRoulette.db'))
 			sqlite_db = create_engine('sqlite:///KaliRoulette.db',echo=False)
 			init_entry = [(self.streamer_name,1000)]
-			bet_ledger_df = pd.DataFrame(init_entry,columns=['nickname','salt'])
+			bet_ledger_df = pd.DataFrame(init_entry,columns=['nickname','golden_daves'])
 			bet_ledger_df.to_sql('bet_ledger',sqlite_db,index=False)
 		else: 
 			sqlite_db = create_engine('sqlite:///KaliRoulette.db',echo=False)
@@ -47,10 +47,10 @@ class Bookie(Thread):
 			if isinstance(event,str):
 				user = event
 				try:
-					balance = bet_ledger_df[bet_ledger_df['nickname'] == user]['salt'].values[0]
+					balance = bet_ledger_df[bet_ledger_df['nickname'] == user]['golden_daves'].values[0]
 				except: # maybe figure out actual exceptions that can trigger here so we can not do bad practice
 					balance = 1000
-					bet_ledger_df.append([{'nickname':user,'salt':balance}],ignore_index=True)
+					bet_ledger_df.append([{'nickname':user,'golden_daves':balance}],ignore_index=True)
 					bet_ledger_df.to_sql('bet_ledger',sqlite_db,index=False,if_exists='replace')
 
 				if user in active_bets.keys():
@@ -59,7 +59,7 @@ class Bookie(Thread):
 				else:
 					total_bets = 0
 				new_balance = balance - total_bets
-				priv_msg_q.put((user,'You have {} salt.'.format(new_balance)))
+				priv_msg_q.put((user,'You have {} Golden Daves.'.format(new_balance)))
 
 			# player has won/died, issue payouts
 			elif len(event) == 2:
@@ -99,26 +99,26 @@ class Bookie(Thread):
 						payout_amount = payouts[row['nickname']]
 					except KeyError:
 						payout_amount = 0
-					return payout_amount+row['salt']
+					return payout_amount+row['golden_daves']
 
-				bet_ledger_df['salt'] = bet_ledger_df.apply(adjust_balance,axis=1)
+				bet_ledger_df['golden_daves'] = bet_ledger_df.apply(adjust_balance,axis=1)
 
-				def bump_salt(salt):
-					if salt < 100: return 100
-					else: return salt
+				def bump_cash(cash):
+					if cash < 100: return 100
+					else: return cash
 
-				bet_ledger_df['salt'] = bet_ledger_df['salt'].apply(bump_salt)
+				bet_ledger_df['golden_daves'] = bet_ledger_df['golden_daves'].apply(bump_casg)
 				bet_ledger_df.to_sql('bet_ledger',sqlite_db,index=False,if_exists='replace')
 
 
 				for u,p in payouts.items():
-					balance = bet_ledger_df[bet_ledger_df['nickname'] == u]['salt'].values[0]
+					balance = bet_ledger_df[bet_ledger_df['nickname'] == u]['golden_daves'].values[0]
 					if p == 0:
 						msg = 'Your winning bets made up for your losing bets. Your balance is {}'.format(balance)
 					if p > 0:
-						msg = 'You won {} salt. Your new balance is {}.'.format(p,balance)
+						msg = 'You won {} Golden Daves. Your new balance is {}.'.format(p,balance)
 					if p < 0: 
-						msg = 'You lost {} salt. Your new balance is {}.'.format(p*-1,balance)
+						msg = 'You lost {} Golden Daves. Your new balance is {}.'.format(p*-1,balance)
 
 					priv_msg_q.put((u,msg))
 
@@ -144,10 +144,10 @@ class Bookie(Thread):
 			elif len(event) == 4:
 				user,amount,cause,level = event
 				try:
-					balance = bet_ledger_df[bet_ledger_df['nickname'] == user]['salt'].values[0]
+					balance = bet_ledger_df[bet_ledger_df['nickname'] == user]['golden_daves'].values[0]
 				except:
 					balance = 1000
-					bet_ledger_df.append([{'nickname':user,'salt':balance}],ignore_index=True)
+					bet_ledger_df.append([{'nickname':user,'golden_daves':balance}],ignore_index=True)
 					bet_ledger_df.to_sql('bet_ledger',sqlite_db,index=False,if_exists='replace')
 
 				if user in active_bets.keys():
@@ -157,7 +157,7 @@ class Bookie(Thread):
 					total_bets = 0
 
 				if total_bets+amount > balance:
-					priv_msg_q.put((user,'Insufficent salt. You have {} available.'.format(balance-total_bets)))
+					priv_msg_q.put((user,'Insufficent balance. You have {} Golden Daves available.'.format(balance-total_bets)))
 				elif cause not in self.death_map.values():
 					priv_msg_q.put((user,'Invalid cause of death.'))
 				else:
