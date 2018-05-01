@@ -2,7 +2,7 @@
 By Dave Knippers (dave.knippers [at] gmail dot com) and Justin Miller 
 
 <p align="center">
-(justins_finest_work.png)
+<img src="justins_finest_work.png">
 </p>
 
 After a year of procrastination, Spelunky Bet / Kali Roulette is available! Now you can bet live in Twitch chat on how I'm going to die, and be rewarded with the bounty of GOLDEN DAVE idols
