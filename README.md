@@ -90,6 +90,10 @@ The bot accepts the following commands:
 
 We'd like to add some sort of wagering on the level on the streamer's death, and we're collecting better statistics to make the payout multipliers more balanced.
 
+# How can I run this myself?
+
+If you're actually interested in doing so, please contact me and I'll write better instructions up. If you think you can get it going on your own, you're probably right. The only major thing I can think of is to ensure you're running a 32 bit version of python. You'll need the packages `pywin32`, `irc`, `pandas` and `sqlalchemy`. Finally, you'll need to make a file called `oauth_token.py` with a single variable `oauth_token` set to your Twitch bot's oauth token string.
+
 # Copyright (do what you want)
 Copyright (c) 2017, 2018 Dave Knippers and Justin Miller
 
