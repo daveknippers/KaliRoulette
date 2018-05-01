@@ -38,6 +38,9 @@ class Bookie(Thread):
 			sqlite_db = create_engine('sqlite:///KaliRoulette.db',echo=False)
 			bet_ledger_df = pd.read_sql('SELECT * FROM bet_ledger',sqlite_db)
 
+
+
+
 		active_bets = {}
 
 		while True:
@@ -114,7 +117,7 @@ class Bookie(Thread):
 				for u,p in payouts.items():
 					balance = bet_ledger_df[bet_ledger_df['nickname'] == u]['golden_daves'].values[0]
 					if p == 0:
-						msg = 'Your winning bets made up for your losing bets. Your balance is {} GOLDEN DAVES'.format(balance)
+						msg = 'Your winning bets made up for your losing bets. Your balance is {} GOLDEN DAVES.'.format(balance)
 					if p > 0:
 						msg = 'You won {} GOLDEN DAVES. Your new balance is {}.'.format(p,balance)
 					if p < 0: 
@@ -142,7 +145,7 @@ class Bookie(Thread):
 
 			# accept bet
 			elif len(event) == 4:
-				user,amount,cause,level = event
+				user,cause,amount,level = event
 				try:
 					balance = bet_ledger_df[bet_ledger_df['nickname'] == user]['golden_daves'].values[0]
 				except:
@@ -325,23 +328,19 @@ class KaliBot(irc.bot.SingleServerIRCBot):
 					reason = "Invalid betting parameters. Try !bet amount death_cause. The causes can be found on bunny_funeral's channel panels."
 					priv_msg_q.put((user,reason))
 				else:
-					amount = msg[1]
+					amount = msg[2]
 					try:
 						amount = int(amount)
 						if amount < 1:
 							raise ValueError()
 					except ValueError:
-						reason = 'Invalid betting amount. Format is !bet amount cause'
+						reason = 'Invalid betting amount. Format is !bet cause amount'
 						priv_msg_q.put((user,reason))
 						amount = None
 
 					if amount is not None:
-						if len(msg[2]) == 0:
-							reason = 'You must enter a cause of death.'
-							priv_msg_q.put((user,reason))
-						else:
-							cause = msg[2]
-							process_q.put((user,amount,cause,self.level))
+						cause = msg[1]
+						process_q.put((user,cause,amount,self.level))
 			else:
 				priv_msg_q.put((user,'Betting is currently disallowed. Please wait for the game to pause.'))
 		
