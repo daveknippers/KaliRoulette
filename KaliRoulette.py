@@ -82,6 +82,7 @@ class Bookie(Thread):
 				death_cause_id,died_on_level = event
 
 				won_game = False
+				unknown_error = False
 
 				if death_cause_id is None:
 					death_cause = None
@@ -98,6 +99,7 @@ class Bookie(Thread):
 						active_bets = {}
 						death_cause = str(death_cause_id)
 						multiplier = 0
+						unknown_error = True
 
 				payouts = {}
 				n_bets = 0
@@ -147,7 +149,7 @@ class Bookie(Thread):
 					priv_msg_q.put((u,msg))
 
 
-				if not won_game:
+				if not won_game and not unknown_error:
 					explanation = self.death_reason_map[death_cause_id]
 
 					compose_message = 'Streamer has found the sweet release of death.'
@@ -323,12 +325,12 @@ class KaliBot(irc.bot.SingleServerIRCBot):
 		command = msg[0]
 
 		if command == 'help':
-			priv_msg_q.put((user,'Available commands: !bet amount death_cause, !balance'))
+			priv_msg_q.put((user,'Available commands: !bet death_cause amount, !balance'))
 
 		if command == 'bet':
 			if self.enable_bets:
 				if len(msg) != 3:
-					reason = "Invalid betting parameters. Try !bet amount death_cause. The causes can be found on bunny_funeral's channel panels."
+					reason = "Invalid betting parameters. Try !bet death_cause amount. The causes can be found on bunny_funeral's channel description below."
 					priv_msg_q.put((user,reason))
 				else:
 					amount = msg[2]
@@ -337,7 +339,7 @@ class KaliBot(irc.bot.SingleServerIRCBot):
 						if amount < 1:
 							raise ValueError()
 					except ValueError:
-						reason = 'Invalid betting amount. Format is !bet cause amount'
+						reason = 'Invalid betting amount. Format is !bet death_cause amount'
 						priv_msg_q.put((user,reason))
 						amount = None
 
