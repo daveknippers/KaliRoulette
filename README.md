@@ -20,68 +20,68 @@ The bot accepts the following commands:
 # Causes of death
 | Death cause | Payout multiplier |
 | ----------- | ----------------- |
+| shopkeeper | 4 |
+| mantrap | 6 |
+| giant_spider | 6 |
+| orange_frog | 6 |
+| big_frog | 6 |
+| piranha | 6 |
+| scorpion | 6 |
+| yeti | 6 |
+| mammoth | 6 |
+| spike | 8 |
+| arrow_trap |8 |
+| tiki_trap |8 |
 | snake | 8 |
 | cobra | 8 |
 | bat | 8 |
 | spider | 8 |
 | spinner_spider | 8 |
-| giant_spider | 6 |
 | skeleton | 8 |
-| scorpion | 6 |
-| caveman | 12 |
-| shopkeeper | 4 |
 | tiki_man | 8 |
 | blue_frog | 8 |
-| orange_frog | 6 |
-| big_frog | 6 |
-| mantrap | 6 |
-| piranha | 6 |
-| old_bitey | 24 |
-| bee | 12 |
-| queen_bee| 16 |
-| snail | 10 |
-| jiang_shi | 10 |
-| knight | 10 |
-| black_knight | 12 |
-| vampire | 10 |
-| ghost | 16 |
-| bacterium | 10 |
-| worm_egg | 12 |
-| worm_baby | 12 |
-| yeti | 6 |
-| king_yeti | 12 |
-| mammoth | 6 |
-| alien | 16 |
-| ufo | 10 |
-| alien_tank | 12 |
-| alien_lord | 16 |
 | hawk_man | 8 |
-| croc_man | 12 |
 | magma_man | 8 |
 | scorpion_fly |8 |
 | mummy | 8 |
+| fall_damage | 10 |
+| bomb | 10 |
+| snail | 10 |
+| jiang_shi | 10 |
+| knight | 10 |
+| vampire | 10 |
+| bacterium | 10 |
+| ufo | 10 |
 | anubis | 10 |
-| olmec | 24 |
-| vlad | 32 |
+| lava | 12 |
+| abyss | 12 |
+| crushed | 12 |
+| caveman | 12 |
+| bee | 12 |
+| black_knight | 12 |
+| worm_egg | 12 |
+| worm_baby | 12 |
+| king_yeti | 12 |
+| alien_tank | 12 |
+| croc_man | 12 |
+| spike_ball | 16 |
+| acid | 16 |
+| turret | 16 |
+| queen_bee| 16 |
+| ghost | 16 |
+| alien | 16 |
+| alien_lord | 16 |
 | imp | 16 |
 | devil | 16 |
 | succubus | 16 |
-| horsehead | 24 |
-| oxface | 24 |
-| yama | 32 |
-| spike_ball |16 |
-| spike | 8 |
-| arrow_trap |8 |
-| tiki_trap |8 |
-| acid |16 |
-| turret | 16 |
-| force_field | 24 |
-| lava | 12 |
-| abyss | 12 |
-| fall_damage | 10 |
 | item_contact_damage | 24 |
-| bomb | 10 |
-| crushed | 12 |
+| force_field | 24 |
+| old_bitey | 24 |
+| horsehead | 24 |
+| olmec | 24 |
+| oxface | 24 |
+| vlad | 32 |
+| yama | 32 |
 | suicide (*) | 32 |
 
 (*) suicide includes having your own bullets reflected back at you, killing yourself with the sceptre and sacrificing yourself to Kali.
