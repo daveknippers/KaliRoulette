@@ -10,21 +10,37 @@ from memory import Spelunker
 from sqlalchemy import create_engine
 from threading import Lock, Timer, Thread
 
-
-
 process_q = queue.Queue()
 priv_msg_q = queue.Queue()
 pub_msg_q = queue.Queue()
 
-
 class Bookie(Thread):
 
-	def __init__(self,death_map,death_reason_map,streamer_name):
+	def __init__(self,streamer_name):
 		Thread.__init__(self)
 
 		self.death_map = death_map
 		self.death_reason_map = death_reason_map
 		self.streamer_name = streamer_name
+
+		if not os.path.exists('death_types.csv'):
+			raise ValueError('death_types.csv not found, cannot continue.')
+
+		self.death_types_df = pd.read_csv('death_types.csv',index_col=False,
+				names=['death_id','internal_death_name','death_name','death_reason','multiplier'],
+				dtype={'death_id':int,'internal_death_name':str,'death_name':str, 'death_reason':str, 'multiplier':int})
+
+		self.death_reason_map = {}
+		for (k,v) in self.death_types_df[['death_id','death_reason']].values:
+			self.death_reason_map[k] = v
+
+		self.death_map = {}
+		for (k,v) in self.death_types_df[['death_id','death_name']].values:
+			self.death_map[k] = v
+
+		self.death_multiplier = {}
+		for (k,v) in self.death_types_df[['death_id','multiplier']].values:
+			self.death_multiplier[k] = v
 
 	def run(self):
 
@@ -37,9 +53,6 @@ class Bookie(Thread):
 		else: 
 			sqlite_db = create_engine('sqlite:///KaliRoulette.db',echo=False)
 			bet_ledger_df = pd.read_sql('SELECT * FROM bet_ledger',sqlite_db)
-
-
-
 
 		active_bets = {}
 
@@ -75,7 +88,13 @@ class Bookie(Thread):
 					won_game = True
 					pub_msg_q.put("Streamer has won! Your GOLDEN DAVES are now forfeit.")
 				else:
-					death_cause = self.death_map[death_cause_id]
+					try:
+						death_cause = self.death_map[death_cause_id]
+					except KeyError:
+						pub_msg_q.put("OH LORDY, I HOPE THERE'S TAPES")
+						pub_msg_q.put("Streamer was killed by {}, but I don't have a record of that cause of death.")
+						pub_msg_q.put('Not to worry, your GOLDEN DAVES are still safe. If you think you deserve something, please write an essay detailing why and put it in the trash')
+						active_bets = {}
 
 				payouts = {}
 				n_bets = 0
@@ -113,7 +132,6 @@ class Bookie(Thread):
 				bet_ledger_df['golden_daves'] = bet_ledger_df['golden_daves'].apply(bump_casg)
 				bet_ledger_df.to_sql('bet_ledger',sqlite_db,index=False,if_exists='replace')
 
-
 				for u,p in payouts.items():
 					balance = bet_ledger_df[bet_ledger_df['nickname'] == u]['golden_daves'].values[0]
 					if p == 0:
@@ -139,9 +157,6 @@ class Bookie(Thread):
 					pub_msg_q.put(compose_message)
 
 				active_bets = {}
-
-				
-
 
 			# accept bet
 			elif len(event) == 4:
@@ -178,21 +193,6 @@ class KaliBot(irc.bot.SingleServerIRCBot):
 	def __init__(self, server, channel, streamer_name, nickname):
 		irc.bot.SingleServerIRCBot.__init__(self, [server], nickname, nickname)
 
-		if not os.path.exists('death_types.csv'):
-			raise ValueError('death_types.csv not found, cannot continue.')
-
-		self.death_types_df = pd.read_csv('death_types.csv',index_col=False,
-				names=['death_id','internal_death_name','death_name','death_reason'],
-				dtype={'death_id':int,'internal_death_name':str,'death_name':str, 'death_reason':str})
-
-		self.death_reason_map = {}
-		for (k,v) in self.death_types_df[['death_id','death_reason']].values:
-			self.death_reason_map[k] = v
-
-		self.death_map = {}
-		for (k,v) in self.death_types_df[['death_id','death_name']].values:
-			self.death_map[k] = v
-		
 		self.channel = channel
 		self.sp = Spelunker()
 
@@ -208,7 +208,7 @@ class KaliBot(irc.bot.SingleServerIRCBot):
 		self.show_pause = True
 		self.lock = Lock()
 
-		self.bookie = Bookie(self.death_map, self.death_reason_map, streamer_name)
+		self.bookie = Bookie(streamer_name)
 		self.bookie.start()
 
 		self.reactor.scheduler.execute_every(2,self.process_private)
