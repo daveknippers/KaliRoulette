@@ -40,6 +40,8 @@ class TimeInfo(c.Structure):
 	
 
 # this probably isn't kosher.
+# not only is it not kosher, since i've written this code i've realized there's a problem here
+# as i can't get the 64 version of python to work properly with this code.
 IS_64BIT = sys.maxsize > 2**32
 if IS_64BIT:
 	MBI = MEMORY_BASIC_INFORMATION64
@@ -61,7 +63,7 @@ def debug_byte_array(buf):
 		result = '\n'.join(str_out)
 		print(result)
 
-# we check memory and see if it's been 'commited' by the spelunky process
+# we check memory and see if it's been commited by the spelunky process
 def VirtualQueryEx(handle, addr):
 	mbi = MBI()
 	mbi_pointer = c.byref(mbi)

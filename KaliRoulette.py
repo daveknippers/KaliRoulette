@@ -59,7 +59,7 @@ class Bookie(Thread):
 				else:
 					total_bets = 0
 				new_balance = balance - total_bets
-				priv_msg_q.put((user,'You have {} Golden Daves.'.format(new_balance)))
+				priv_msg_q.put((user,'You have {} GOLDEN DAVES.'.format(new_balance)))
 
 			# player has won/died, issue payouts
 			elif len(event) == 2:
@@ -70,7 +70,7 @@ class Bookie(Thread):
 				if death_cause_id is None:
 					death_cause = None
 					won_game = True
-					pub_msg_q.put("Streamer has won! Your bets are now forfeit.")
+					pub_msg_q.put("Streamer has won! Your GOLDEN DAVES are now forfeit.")
 				else:
 					death_cause = self.death_map[death_cause_id]
 
@@ -114,11 +114,11 @@ class Bookie(Thread):
 				for u,p in payouts.items():
 					balance = bet_ledger_df[bet_ledger_df['nickname'] == u]['golden_daves'].values[0]
 					if p == 0:
-						msg = 'Your winning bets made up for your losing bets. Your balance is {}'.format(balance)
+						msg = 'Your winning bets made up for your losing bets. Your balance is {} GOLDEN DAVES'.format(balance)
 					if p > 0:
-						msg = 'You won {} Golden Daves. Your new balance is {}.'.format(p,balance)
+						msg = 'You won {} GOLDEN DAVES. Your new balance is {}.'.format(p,balance)
 					if p < 0: 
-						msg = 'You lost {} Golden Daves. Your new balance is {}.'.format(p*-1,balance)
+						msg = 'You lost {} GOLDEN DAVES. Your new balance is {}.'.format(p*-1,balance)
 
 					priv_msg_q.put((u,msg))
 
@@ -157,7 +157,7 @@ class Bookie(Thread):
 					total_bets = 0
 
 				if total_bets+amount > balance:
-					priv_msg_q.put((user,'Insufficent balance. You have {} Golden Daves available.'.format(balance-total_bets)))
+					priv_msg_q.put((user,'Insufficent balance. You have {} GOLDEN DAVES available.'.format(balance-total_bets)))
 				elif cause not in self.death_map.values():
 					priv_msg_q.put((user,'Invalid cause of death.'))
 				else:
@@ -331,13 +331,13 @@ class KaliBot(irc.bot.SingleServerIRCBot):
 						if amount < 1:
 							raise ValueError()
 					except ValueError:
-						reason = 'Invalid betting amount. Please enter a positive whole number.'
+						reason = 'Invalid betting amount. Format is !bet amount cause'
 						priv_msg_q.put((user,reason))
 						amount = None
 
 					if amount is not None:
 						if len(msg[2]) == 0:
-							reason = "Please enter a valid death reason. The causes can be found in bunny_funeral's channel panels."
+							reason = 'You must enter a cause of death.'
 							priv_msg_q.put((user,reason))
 						else:
 							cause = msg[2]
