@@ -102,3 +102,12 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+# Donations
+On the off chance this has brought joy to your life and you wish to give something, here's some cryptocurrency addresses for donations
+
+LTC: LKwk49H3kcXJEtJ8dPvXzHaKVSrmASS3Kz
+
+BTC: 14nWWjyktGzoy6kWuFn8isXmdmHdLRxtrD
+
+XMR: 47Du9LaABQmgzt91kY4gkH4cFWeEfaS45BvhYwbv2o5iE5nFA4UnjmugSaymAnfrinYpGqS3VWJKyJguqCFFQpLaTn1eQbB
