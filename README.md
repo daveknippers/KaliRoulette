@@ -24,7 +24,7 @@ The bot accepts the following commands:
 | giant_spider | 6 |
 | skeleton | 8 |
 | scorpion | 6 |
-| caveman,12 |
+| caveman | 12 |
 | shopkeeper | 4 |
 | tiki_man | 8 |
 | blue_frog | 8 |
