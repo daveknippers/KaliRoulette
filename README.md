@@ -1,7 +1,7 @@
 # KaliRoulette
 By Dave Knippers (dave.knippers [at] gmail dot com) and Justin Miller 
 
-After a year of procrastination, Spelunky Bet / Kali Roulette is available! Now you can bet live in Twitch chat on how I'm going to die. and be rewarded with the bounty of GOLDEN DAVE idols
+After a year of procrastination, Spelunky Bet / Kali Roulette is available! Now you can bet live in Twitch chat on how I'm going to die, and be rewarded with the bounty of GOLDEN DAVE idols
 
 Everyone starts with 1000 GOLDEN DAVES. If you lose all your GOLDEN DAVES, you'll get 100 GOLDEN DAVES at the start of the next attempt.
 
@@ -80,7 +80,7 @@ crushed [payout multiplier 4]
 
 (*) suicide includes having your own bullets reflected back at you, killing yourself with the sceptre and sacrificing yourself to Kali.
 
-# Copyright (do what you want license)
+# Copyright (do what you want)
 Copyright (c) 2017, 2018 Dave Knippers and Justin Miller
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
