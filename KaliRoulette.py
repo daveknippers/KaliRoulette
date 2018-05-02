@@ -64,7 +64,7 @@ class Bookie(Thread):
 					balance = bet_ledger_df[bet_ledger_df['nickname'] == user]['golden_daves'].values[0]
 				except: # maybe figure out actual exceptions that can trigger here so we can not do bad practice
 					balance = 1000
-					bet_ledger_df.append([{'nickname':user,'golden_daves':balance}],ignore_index=True)
+					bet_ledger_df = bet_ledger_df.append([{'nickname':user,'golden_daves':balance}],ignore_index=True)
 					bet_ledger_df.to_sql('bet_ledger',sqlite_db,index=False,if_exists='replace')
 
 				if user in active_bets.keys():
@@ -232,6 +232,8 @@ class KaliBot(irc.bot.SingleServerIRCBot):
 		current_has_ankh = sp.has_ankh
 		current_angry_shopkeeper = sp.angry_shopkeeper
 		current_killed_by = sp.killed_by
+
+		print('current_level, self.level:', current_level, self.level)
 
 		if self.has_ankh and not current_has_ankh:
 			pub_msg_q.put('Good thing I have the Ankh.')
