@@ -19,8 +19,6 @@ class Bookie(Thread):
 	def __init__(self,streamer_name):
 		Thread.__init__(self)
 
-		self.death_map = death_map
-		self.death_reason_map = death_reason_map
 		self.streamer_name = streamer_name
 
 		if not os.path.exists('death_types.csv'):
@@ -38,9 +36,9 @@ class Bookie(Thread):
 		for (k,v) in self.death_types_df[['death_id','death_name']].values:
 			self.death_map[k] = v
 
-		self.death_multiplier = {}
+		self.death_multiplier_map = {}
 		for (k,v) in self.death_types_df[['death_id','multiplier']].values:
-			self.death_multiplier[k] = v
+			self.death_multiplier_map[k] = v
 
 	def run(self):
 
@@ -104,6 +102,7 @@ class Bookie(Thread):
 				payouts = {}
 				n_bets = 0
 				n_winning_bets = 0
+				n_total_winnings = 0
 
 				for u,acls in active_bets.items():
 					try:
@@ -113,8 +112,10 @@ class Bookie(Thread):
 
 					for a,c,l in acls:
 						if death_cause == c:
-							user_payouts += a*multiplier
+							user_payouts += a*(multiplier-1)
 							n_winning_bets += 1
+							n_bets += 1
+							n_total_winnings += a*multiplier
 						else:
 							user_payouts -= a
 							n_bets += 1
@@ -134,7 +135,7 @@ class Bookie(Thread):
 					if cash < 100: return 100
 					else: return cash
 
-				bet_ledger_df['golden_daves'] = bet_ledger_df['golden_daves'].apply(bump_casg)
+				bet_ledger_df['golden_daves'] = bet_ledger_df['golden_daves'].apply(bump_cash)
 				bet_ledger_df.to_sql('bet_ledger',sqlite_db,index=False,if_exists='replace')
 
 				for u,p in payouts.items():
@@ -154,7 +155,7 @@ class Bookie(Thread):
 
 					compose_message = 'Streamer has found the sweet release of death.'
 					if n_bets > 0 and n_winning_bets > 0:
-						compose_message += ' They were {} There were {} bet(s) total and {} winning bet(s).'.format(explanation,n_bets,n_winning_bets)
+						compose_message += ' They were {} There were {} bet(s) total and {} winning bet(s). A total of {} GOLDEN DAVES were won.'.format(explanation,n_bets,n_winning_bets,n_total_winnings)
 					elif n_bets > 0:
 						compose_message += ' They were {} There were {} bet(s) total, all losers.'.format(explanation,n_bets)
 					else:
@@ -170,7 +171,7 @@ class Bookie(Thread):
 					balance = bet_ledger_df[bet_ledger_df['nickname'] == user]['golden_daves'].values[0]
 				except:
 					balance = 1000
-					bet_ledger_df.append([{'nickname':user,'golden_daves':balance}],ignore_index=True)
+					bet_ledger_df = bet_ledger_df.append([{'nickname':user,'golden_daves':balance}],ignore_index=True)
 					bet_ledger_df.to_sql('bet_ledger',sqlite_db,index=False,if_exists='replace')
 
 				if user in active_bets.keys():
@@ -248,10 +249,10 @@ class KaliBot(irc.bot.SingleServerIRCBot):
 					process_q.put((None,self.level))
 					self.triggered_shoppie = False
 				elif self.enable_bets == False and self.show_pause:
-					pub_msg_q.put('Game paused, betting is available for the next 30 seconds.')
+					pub_msg_q.put('Game paused, betting is available for the next 15 seconds.')
 					self.enable_bets = True
 					self.show_pause = False
-					Timer(30,self.end_betting).start()
+					Timer(15,self.end_betting).start()
 			else:
 				self.show_pause = True
 		
