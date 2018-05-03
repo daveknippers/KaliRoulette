@@ -93,7 +93,7 @@ class Bookie(Thread):
 					except KeyError:
 						pub_msg_q.put("OH LORDY, I HOPE THERE'S TAPES")
 						pub_msg_q.put("Streamer was killed by {}, but I don't have a record of that cause of death.")
-						pub_msg_q.put('Not to worry, your GOLDEN DAVES are still safe. If you think you deserve something, please write an essay detailing why and put it in the trash')
+						pub_msg_q.put("Not to worry, your GOLDEN DAVES are still safe. If you think you deserve something, please write an essay detailing why and I promise I'll take it into consideration.")
 						active_bets = {}
 						death_cause = str(death_cause_id)
 						multiplier = 0
@@ -115,7 +115,7 @@ class Bookie(Thread):
 							user_payouts += a*(multiplier-1)
 							n_winning_bets += 1
 							n_bets += 1
-							n_total_winnings += a*multiplier
+							n_total_winnings += a*(multiplier-1)
 						else:
 							user_payouts -= a
 							n_bets += 1
@@ -202,7 +202,7 @@ class KaliBot(irc.bot.SingleServerIRCBot):
 		self.channel = channel
 		self.sp = Spelunker()
 
-		self.enable_bets = False
+		self.enable_bets = True
 		
 		self.timer = self.sp.game_timer
 		self.level = self.sp.level
@@ -211,7 +211,6 @@ class KaliBot(irc.bot.SingleServerIRCBot):
 		self.killed_by = self.sp.killed_by
 		self.triggered_shoppie = False
 		
-		self.show_pause = True
 		self.lock = Lock()
 
 		self.bookie = Bookie(streamer_name)
@@ -233,8 +232,6 @@ class KaliBot(irc.bot.SingleServerIRCBot):
 		current_angry_shopkeeper = sp.angry_shopkeeper
 		current_killed_by = sp.killed_by
 
-		print('current_level, self.level:', current_level, self.level)
-
 		if self.has_ankh and not current_has_ankh:
 			pub_msg_q.put('Good thing I have the Ankh.')
 		if not self.triggered_shoppie and current_angry_shopkeeper and not current_is_dead:
@@ -244,19 +241,16 @@ class KaliBot(irc.bot.SingleServerIRCBot):
 		if not self.is_dead and current_is_dead:
 			process_q.put((current_killed_by,current_level))
 			self.triggered_shoppie = False
+			self.enable_bets = False
+			Timer(15,self.start_betting).start()
 
 		elif not current_is_dead:
 			if self.timer == current_timer:
 				if current_level == 0 and (self.level == 16 or self.level == 20):
-					process_q.put((None,self.level))
+					self.enable_bets = False
 					self.triggered_shoppie = False
-				elif self.enable_bets == False and self.show_pause:
-					pub_msg_q.put('Game paused, betting is available for the next 15 seconds.')
-					self.enable_bets = True
-					self.show_pause = False
-					Timer(15,self.end_betting).start()
-			else:
-				self.show_pause = True
+					Timer(15,self.start_betting).start()
+					process_q.put((None,self.level))
 		
 		self.timer = current_timer
 		self.is_dead = current_is_dead
@@ -282,11 +276,11 @@ class KaliBot(irc.bot.SingleServerIRCBot):
 		except queue.Empty:
 			pass
 		
-	def end_betting(self):
+	def start_betting(self):
 		self.lock.acquire()
 
-		pub_msg_q.put('Betting has ended.')
-		self.enable_bets = False
+		pub_msg_q.put('Now accepting new bets.')
+		self.enable_bets = True
 
 		self.lock.release()
 
@@ -350,7 +344,7 @@ class KaliBot(irc.bot.SingleServerIRCBot):
 						cause = msg[1]
 						process_q.put((user,cause,amount,self.level))
 			else:
-				priv_msg_q.put((user,'Betting is currently disallowed. Please wait for the game to pause.'))
+				priv_msg_q.put((user,'Betting is currently disallowed. Betting will be reenabled in less than fifteen seconds.'))
 		
 		if command == 'balance':
 			print('printing balance for {}'.format(user))
