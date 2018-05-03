@@ -9,7 +9,7 @@ After a year of procrastination, Spelunky Bet / Kali Roulette is available! Now 
 
 Everyone starts with 1000 GOLDEN DAVES. If you lose all your GOLDEN DAVES, you'll get 100 GOLDEN DAVES at the start of the next attempt.
 
-Each cause of death has a multiplier on payout on a correct bet. For example, wagering 100 GOLDEN DAVES on the shopkeeper will yield 400 GOLDEN DAVES if the shopkeeper kills the streamer, as he has a payout multiplier of 4.
+You can bet at almost any time, providing the Spelunker is still alive. There is a window after the Spelunker either dies or wins where betting is disabled for 15 seconds. Each cause of death has a multiplier on payout on a correct bet. For example, wagering 100 GOLDEN DAVES on the shopkeeper will yield 400 GOLDEN DAVES if the shopkeeper kills the streamer, as he has a payout multiplier of 4.
 
 # Commands
 The bot accepts the following commands:
@@ -116,10 +116,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 # Donations
-On the off chance this has brought joy to your life and you wish to give something, here's some cryptocurrency addresses for donations
-
-LTC: LKwk49H3kcXJEtJ8dPvXzHaKVSrmASS3Kz
-
-BTC: 14nWWjyktGzoy6kWuFn8isXmdmHdLRxtrD
+On the off chance this has brought joy to your life and you wish to give something, here's some cryptocurrency addresses for donations.
 
 XMR: 47Du9LaABQmgzt91kY4gkH4cFWeEfaS45BvhYwbv2o5iE5nFA4UnjmugSaymAnfrinYpGqS3VWJKyJguqCFFQpLaTn1eQbB
+LTC: LKwk49H3kcXJEtJ8dPvXzHaKVSrmASS3Kz
+BTC: 14nWWjyktGzoy6kWuFn8isXmdmHdLRxtrD
+
