@@ -1,4 +1,4 @@
-# KaliRoulette
+# Kali Roulette / Spelunky Bet
 By Dave Knippers (dave.knippers [at] gmail dot com) and Justin Miller 
 
 <p align="center">
@@ -119,6 +119,8 @@ SOFTWARE.
 On the off chance this has brought joy to your life and you wish to give something, here's some cryptocurrency addresses for donations.
 
 XMR: 47Du9LaABQmgzt91kY4gkH4cFWeEfaS45BvhYwbv2o5iE5nFA4UnjmugSaymAnfrinYpGqS3VWJKyJguqCFFQpLaTn1eQbB
+
 LTC: LKwk49H3kcXJEtJ8dPvXzHaKVSrmASS3Kz
+
 BTC: 14nWWjyktGzoy6kWuFn8isXmdmHdLRxtrD
 
