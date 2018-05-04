@@ -65,6 +65,8 @@ class Bookie(Thread):
 				except: # maybe figure out actual exceptions that can trigger here so we can not do bad practice
 					balance = 1000
 					bet_ledger_df = bet_ledger_df.append([{'nickname':user,'golden_daves':balance}],ignore_index=True)
+					# single row in a table change?
+					# better WIPE THE ENTIRE TABLE OUT and REWRITE THE ENTIRE THING
 					bet_ledger_df.to_sql('bet_ledger',sqlite_db,index=False,if_exists='replace')
 
 				if user in active_bets.keys():
@@ -135,6 +137,8 @@ class Bookie(Thread):
 					if cash < 100: return 100
 					else: return cash
 
+				# single row in a table change?
+				# better WIPE THE ENTIRE TABLE OUT and REWRITE THE ENTIRE THING
 				bet_ledger_df['golden_daves'] = bet_ledger_df['golden_daves'].apply(bump_cash)
 				bet_ledger_df.to_sql('bet_ledger',sqlite_db,index=False,if_exists='replace')
 
@@ -171,6 +175,8 @@ class Bookie(Thread):
 					balance = bet_ledger_df[bet_ledger_df['nickname'] == user]['golden_daves'].values[0]
 				except:
 					balance = 1000
+					# single row in a table change?
+					# better WIPE THE ENTIRE TABLE OUT and REWRITE THE ENTIRE THING
 					bet_ledger_df = bet_ledger_df.append([{'nickname':user,'golden_daves':balance}],ignore_index=True)
 					bet_ledger_df.to_sql('bet_ledger',sqlite_db,index=False,if_exists='replace')
 
