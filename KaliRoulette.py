@@ -8,6 +8,7 @@ from oauth_token import oauth_token
 from memory import Spelunker
 
 from sqlalchemy import create_engine
+from dbsecrets import USER, PASSWORD, HOST, PORT, DATABASE
 from threading import Lock, Timer, Thread
 
 process_q = queue.Queue()
@@ -41,16 +42,10 @@ class Bookie(Thread):
 			self.death_multiplier_map[k] = v
 
 	def run(self):
-
-		if not os.path.exists('KaliRoulette.db'):
-			print('No Kali Roulette database exists. Creating {}'.format('KaliRoulette.db'))
-			sqlite_db = create_engine('sqlite:///KaliRoulette.db',echo=False)
-			init_entry = [(self.streamer_name,1000)]
-			bet_ledger_df = pd.DataFrame(init_entry,columns=['nickname','golden_daves'])
-			bet_ledger_df.to_sql('bet_ledger',sqlite_db,index=False)
-		else: 
-			sqlite_db = create_engine('sqlite:///KaliRoulette.db',echo=False)
-			bet_ledger_df = pd.read_sql('SELECT * FROM bet_ledger',sqlite_db)
+		#connect to database and pull down bet_ledger
+		pg_db = create_engine(f'postgresql://{DBUSER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}',echo=False)
+		connection = pg_db.connect()
+		bet_ledger_df = pd.read_sql('SELECT * FROM Kali.bet_ledger',pg_db)
 
 		active_bets = {}
 
@@ -67,7 +62,7 @@ class Bookie(Thread):
 					bet_ledger_df = bet_ledger_df.append([{'nickname':user,'golden_daves':balance}],ignore_index=True)
 					# single row in a table change?
 					# better WIPE THE ENTIRE TABLE OUT and REWRITE THE ENTIRE THING
-					bet_ledger_df.to_sql('bet_ledger',sqlite_db,index=False,if_exists='replace')
+					bet_ledger_df.to_sql('Kali.bet_ledger',pg_db,index=False,if_exists='replace')
 
 				if user in active_bets.keys():
 					bets = active_bets[user]
@@ -79,7 +74,7 @@ class Bookie(Thread):
 
 			# player has won/died, issue payouts
 			elif len(event) == 2:
-				death_cause_id,died_on_level = event
+				death_cause_id, died_on_level = event
 
 				won_game = False
 				unknown_error = False
@@ -100,6 +95,10 @@ class Bookie(Thread):
 						death_cause = str(death_cause_id)
 						multiplier = 0
 						unknown_error = True
+
+				#Store death cause in DB
+				sql = f"INSERT INTO Kali.death_tracker(cause_of_death,player,level) values('{death_cause}','{self.streamer_name}','{died_on_level}')"
+				connection.execute(sql)
 
 				payouts = {}
 				n_bets = 0
@@ -140,7 +139,7 @@ class Bookie(Thread):
 				# single row in a table change?
 				# better WIPE THE ENTIRE TABLE OUT and REWRITE THE ENTIRE THING
 				bet_ledger_df['golden_daves'] = bet_ledger_df['golden_daves'].apply(bump_cash)
-				bet_ledger_df.to_sql('bet_ledger',sqlite_db,index=False,if_exists='replace')
+				bet_ledger_df.to_sql('Kali.bet_ledger',pg_db,index=False,if_exists='replace')
 
 				for u,p in payouts.items():
 					balance = bet_ledger_df[bet_ledger_df['nickname'] == u]['golden_daves'].values[0]
@@ -178,7 +177,7 @@ class Bookie(Thread):
 					# single row in a table change?
 					# better WIPE THE ENTIRE TABLE OUT and REWRITE THE ENTIRE THING
 					bet_ledger_df = bet_ledger_df.append([{'nickname':user,'golden_daves':balance}],ignore_index=True)
-					bet_ledger_df.to_sql('bet_ledger',sqlite_db,index=False,if_exists='replace')
+					bet_ledger_df.to_sql('Kali.bet_ledger',pg_db,index=False,if_exists='replace')
 
 				if user in active_bets.keys():
 					bets = active_bets[user]
@@ -195,7 +194,9 @@ class Bookie(Thread):
 						active_bets[user]
 					except KeyError:
 						active_bets[user] = []
+					#Store bet into database
 					active_bets[user].append((amount,cause,level))
+					sql = f"INSERT INTO Kali.bets_tracker(bet_on_user,level,death,betting_user) values('{self.streamer_name}','{level}','{cause}','{user}')"
 
 
 
